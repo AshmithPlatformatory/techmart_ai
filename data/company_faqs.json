@@ -1,0 +1,463 @@
+[
+  {
+    "faq_id": "FAQ-001",
+    "category": "orders_delivery",
+    "question": "How do I track my order?",
+    "answer": "Once your order is shipped, you will receive an SMS, WhatsApp message, and email with a tracking ID and a direct tracking link. You can also go to the 'Orders' section in your TechKart account, select the order, and click 'Track Order' to see real-time shipment status. Tracking updates are refreshed every 2-4 hours. If you do not receive a tracking ID within 48 hours of placing your order, please contact our support team.",
+    "tags": [
+      "track",
+      "order",
+      "shipment",
+      "tracking ID"
+    ],
+    "related_tos": "TOS-003"
+  },
+  {
+    "faq_id": "FAQ-002",
+    "category": "orders_delivery",
+    "question": "What are the standard delivery timelines?",
+    "answer": "Delivery timelines depend on your location: Metro cities (Mumbai, Delhi, Bangalore, Chennai, Hyderabad, Pune, Kolkata) — 2-4 business days. Tier-2 cities — 4-6 business days. Tier-3 cities and remote areas — 6-9 business days. Express next-day delivery is available in select metro areas for eligible products and incurs an additional fee shown at checkout. Business days exclude Sundays and public holidays.",
+    "tags": [
+      "delivery time",
+      "shipping",
+      "metro",
+      "express"
+    ],
+    "related_tos": "TOS-003"
+  },
+  {
+    "faq_id": "FAQ-003",
+    "category": "orders_delivery",
+    "question": "Do you deliver to all parts of India?",
+    "answer": "TechKart delivers to 27,000+ pin codes across India. To check if we deliver to your pin code, enter it on the product page before adding to cart — a delivery availability message will appear. Some remote and restricted areas (certain North-Eastern states, islands, military zones) may not be serviceable. We do not currently offer international shipping.",
+    "tags": [
+      "delivery",
+      "pin code",
+      "serviceable",
+      "locations"
+    ],
+    "related_tos": "TOS-003"
+  },
+  {
+    "faq_id": "FAQ-004",
+    "category": "orders_delivery",
+    "question": "What should I do if my order is delayed beyond the estimated date?",
+    "answer": "First, check the tracking link sent to your registered mobile/email for the latest status. If the tracking shows no update for more than 48 hours or the delivery date has passed, please raise a support ticket from the Orders section or call our helpline at 1800-XXX-XXXX. Our team will coordinate with the logistics partner and provide a resolution within 24 hours. In rare cases of extreme delay (more than 7 days beyond estimated delivery), you may request a full refund.",
+    "tags": [
+      "delay",
+      "late delivery",
+      "support",
+      "refund"
+    ],
+    "related_tos": "TOS-003"
+  },
+  {
+    "faq_id": "FAQ-005",
+    "category": "orders_delivery",
+    "question": "Can I change my delivery address after placing an order?",
+    "answer": "Address changes are only possible if the order has not yet been shipped. Go to Orders > Select the order > 'Edit Address' to modify it. Once the order is in 'Shipped' status, the delivery address cannot be changed. If you have moved or made an error, we recommend cancelling the order (before shipment) and placing a new one with the correct address.",
+    "tags": [
+      "address change",
+      "delivery address",
+      "order modification"
+    ],
+    "related_tos": "TOS-008"
+  },
+  {
+    "faq_id": "FAQ-006",
+    "category": "orders_delivery",
+    "question": "What happens if I am not available when the delivery is attempted?",
+    "answer": "If you are unavailable during the first delivery attempt, the logistics partner will attempt delivery two more times on subsequent days. You will receive a notification before each attempt. If all three attempts fail, the package will be returned to TechKart's warehouse and your order will be auto-cancelled with a full refund (for pre-paid orders) processed within 7-10 business days. You can also authorize another adult at your address to accept the delivery on your behalf.",
+    "tags": [
+      "delivery attempt",
+      "unavailable",
+      "missed delivery",
+      "RTO"
+    ],
+    "related_tos": "TOS-003"
+  },
+  {
+    "faq_id": "FAQ-007",
+    "category": "orders_delivery",
+    "question": "Does TechKart offer same-day or express delivery?",
+    "answer": "Yes, TechKart offers Express Delivery (next-day) in select metro areas including Bangalore, Mumbai, Delhi NCR, Hyderabad, and Chennai for eligible products. Same-day delivery is available in Bangalore and Mumbai for orders placed before 12 PM for in-stock products. Express and same-day delivery options, along with applicable fees, are displayed at checkout if available for your pin code and selected product. High-value items above ₹1,00,000 may not be eligible for express delivery due to additional QC requirements.",
+    "tags": [
+      "same-day",
+      "express delivery",
+      "next-day",
+      "fast delivery"
+    ],
+    "related_tos": "TOS-003"
+  },
+  {
+    "faq_id": "FAQ-008",
+    "category": "returns_refunds",
+    "question": "What is the return window for products?",
+    "answer": "The return window varies by product category: Smartphones, tablets, laptops — 7 days from delivery. Televisions — 10 days from delivery. GPUs, CPUs, gaming consoles — 48-hour DOA (Dead on Arrival) replacement only. Speakers, headphones, smartwatches — 7 days. Cameras — 7 days (must be unopened or have a defect). All return requests must be raised within the return window; requests raised after the window will not be accepted.",
+    "tags": [
+      "return window",
+      "7 day",
+      "10 day",
+      "DOA",
+      "return policy"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-009",
+    "category": "returns_refunds",
+    "question": "How do I initiate a return?",
+    "answer": "To initiate a return: Go to 'Orders' in your TechKart account > Select the delivered order > Click 'Return/Replace' > Choose the item > Select return reason > Upload photos if the product is damaged > Submit. A pickup will be scheduled within 24-48 hours. Ensure the product is packed in its original packaging with all accessories, manuals, and warranty cards. Our QC team will inspect the product at pickup and at our warehouse before approving the return.",
+    "tags": [
+      "return initiate",
+      "how to return",
+      "return process",
+      "pickup"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-010",
+    "category": "returns_refunds",
+    "question": "What items are not eligible for return?",
+    "answer": "The following items are not eligible for return: Products with physical damage caused by the customer. Products with broken/tampered seals, missing accessories, or missing warranty cards. Software licenses and digital products. Opened consumables. Products with tampered or missing IMEI/serial numbers. GPUs and CPUs (return only if DOA within 48 hours). Products returned after the return window. Items marked as 'non-returnable' on the product listing page.",
+    "tags": [
+      "non returnable",
+      "return eligibility",
+      "not eligible",
+      "exceptions"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-011",
+    "category": "returns_refunds",
+    "question": "When will I receive my refund after a return?",
+    "answer": "After a return pickup, QC is completed within 3 business days of the product reaching our warehouse. Once QC is approved, refunds are initiated within 24 hours. Credit to your account: UPI/net banking/debit card — 5-7 business days. Credit card — 7-10 business days. TechKart Wallet — instant. You can track refund status in the Orders section under 'Refund Status'.",
+    "tags": [
+      "refund timeline",
+      "when refund",
+      "refund status",
+      "QC"
+    ],
+    "related_tos": "TOS-002"
+  },
+  {
+    "faq_id": "FAQ-012",
+    "category": "returns_refunds",
+    "question": "What should I do if I receive a damaged or wrong product?",
+    "answer": "If you receive a damaged or wrong product, do not use it and do not discard the packaging. Raise a return/replacement request within 48 hours of delivery from the Orders section and upload clear photos of the damaged product, packaging, and invoice. TechKart will prioritize such cases and schedule a pickup within 24 hours. A replacement will be dispatched or a full refund issued (your choice) once our team verifies the complaint. Delivery charges for the original order will also be refunded in this case.",
+    "tags": [
+      "damaged product",
+      "wrong product",
+      "defective",
+      "broken",
+      "DOA"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-013",
+    "category": "returns_refunds",
+    "question": "Can I exchange a product instead of returning it?",
+    "answer": "Yes, TechKart offers a direct exchange option for select categories (smartphones, headphones, speakers, watches) where you can exchange for a different color or storage variant of the same model. Exchanges are subject to stock availability. If the exchange variant is priced higher, you pay the difference; if lower, the balance is refunded to your TechKart Wallet. Cross-model exchanges are not supported — for a different model, you must return the original product and place a new order. Exchange requests must be raised within the return window.",
+    "tags": [
+      "exchange",
+      "swap",
+      "variant",
+      "different color",
+      "different model"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-014",
+    "category": "returns_refunds",
+    "question": "I ordered multiple items. Can I return only one?",
+    "answer": "Yes, partial returns are supported for multi-item orders. Go to Orders > Select the order > Click 'Return/Replace' > Choose only the specific item(s) you wish to return. The pickup and refund will be processed only for the selected item(s). The remaining items in the order are not affected by a partial return.",
+    "tags": [
+      "partial return",
+      "multiple items",
+      "single item return"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-015",
+    "category": "payments_emi",
+    "question": "What payment methods does TechKart accept?",
+    "answer": "TechKart accepts: UPI (Google Pay, PhonePe, Paytm, BHIM, and all UPI apps), Credit Cards (Visa, Mastercard, Amex, RuPay), Debit Cards, Net Banking (all major banks), TechKart Wallet, and Cash on Delivery (for orders up to ₹25,000 in eligible areas). Buy Now Pay Later (BNPL) options via Simpl and LazyPay are also available for eligible customers.",
+    "tags": [
+      "payment methods",
+      "UPI",
+      "credit card",
+      "COD",
+      "net banking"
+    ],
+    "related_tos": "TOS-004"
+  },
+  {
+    "faq_id": "FAQ-016",
+    "category": "payments_emi",
+    "question": "How does No-Cost EMI work?",
+    "answer": "With No-Cost EMI, the interest for the EMI period is waived off by discounting it upfront from the product's selling price. For example, if a product is ₹60,000 and you opt for 6-month No-Cost EMI at 14% annual interest, the interest amount (~₹2,800) is deducted from the product price before EMI calculation, so you effectively pay ₹57,200 spread across 6 installments with no extra cost. No-Cost EMI is available on select products and with select bank credit cards, as displayed on the product and checkout pages. The actual discount is processed by the bank, not TechKart.",
+    "tags": [
+      "no cost EMI",
+      "EMI",
+      "interest",
+      "installment"
+    ],
+    "related_tos": "TOS-005"
+  },
+  {
+    "faq_id": "FAQ-017",
+    "category": "payments_emi",
+    "question": "My payment failed but money was deducted from my account. What should I do?",
+    "answer": "This can happen due to a network disruption during payment processing. In most cases, the amount is automatically reversed within 24-48 business hours by your bank or payment gateway. If you do not receive a reversal within 48 hours, please raise a support ticket from the Help section with your transaction reference number, bank statement screenshot, and order details. Our team will coordinate with the payment gateway and resolve it within 5 business days. TechKart does not retain failed payment amounts; any deduction is held by the payment gateway/bank.",
+    "tags": [
+      "payment failed",
+      "money deducted",
+      "refund",
+      "failed transaction"
+    ],
+    "related_tos": "TOS-004"
+  },
+  {
+    "faq_id": "FAQ-018",
+    "category": "payments_emi",
+    "question": "Is it safe to save my card details on TechKart?",
+    "answer": "Yes, it is safe. TechKart does not store your full card number or CVV on its servers. Card details saved on TechKart are tokenized by our PCI-DSS certified payment gateway partners (Razorpay/PayU) as per RBI's card tokenization mandate. This means your card is represented by a unique token; even in case of a data breach, your actual card details are never exposed. You can remove saved cards any time from Account Settings > Saved Payment Methods.",
+    "tags": [
+      "card safety",
+      "saved cards",
+      "tokenization",
+      "secure payment"
+    ],
+    "related_tos": "TOS-004"
+  },
+  {
+    "faq_id": "FAQ-019",
+    "category": "payments_emi",
+    "question": "Which banks offer EMI on TechKart? What are the tenure options?",
+    "answer": "TechKart offers EMI through: HDFC Bank, ICICI Bank, SBI, Axis Bank, Kotak Mahindra Bank, IDFC First Bank, and Bajaj Finserv. Standard EMI tenures: 3, 6, 9, 12, 18, and 24 months (availability depends on the bank and product). No-Cost EMI tenures: typically 3, 6, and 9 months for eligible bank cards on select products. Debit card EMI is available for HDFC, SBI, and Kotak account holders with sufficient balance or pre-approved limits. EMI eligibility is determined by your bank at the time of transaction.",
+    "tags": [
+      "EMI banks",
+      "EMI tenure",
+      "debit card EMI",
+      "Bajaj Finserv"
+    ],
+    "related_tos": "TOS-005"
+  },
+  {
+    "faq_id": "FAQ-020",
+    "category": "warranty_repairs",
+    "question": "How do I claim manufacturer warranty for my product?",
+    "answer": "To claim warranty, visit the brand's nearest authorized service center with: your product, the original TechKart invoice (digital invoice accepted), and the warranty card (if provided). You can find the nearest service center on the brand's official website or call their customer care. TechKart's digital invoice is accepted as valid proof of purchase at all authorized service centers in India. Do not approach unauthorized repair shops for warranty repairs, as this will void the manufacturer's warranty.",
+    "tags": [
+      "warranty claim",
+      "service center",
+      "invoice",
+      "manufacturer warranty"
+    ],
+    "related_tos": "TOS-006"
+  },
+  {
+    "faq_id": "FAQ-021",
+    "category": "warranty_repairs",
+    "question": "What does the manufacturer warranty cover?",
+    "answer": "Manufacturer warranty typically covers: hardware defects, component failures, battery defects (reduced capacity below 80% in normal use for smartphones), motherboard/PCB failures, display defects (dead pixels above threshold), and manufacturing-related malfunctions. It does NOT cover: physical damage (cracked screen, dents, bent body), liquid/water damage (unless the product is rated waterproof), damage from third-party accessories, software issues caused by user modifications (rooting/jailbreaking), and consumable wear (batteries after 1 year, earpad wear on headphones).",
+    "tags": [
+      "warranty coverage",
+      "what is covered",
+      "warranty exclusions"
+    ],
+    "related_tos": "TOS-006"
+  },
+  {
+    "faq_id": "FAQ-022",
+    "category": "warranty_repairs",
+    "question": "What is TechKart Care (Extended Warranty)?",
+    "answer": "TechKart Care is TechKart's extended warranty plan available for purchase at checkout for eligible products. It extends your device's coverage by 1 or 2 years beyond the manufacturer's standard warranty. In addition to standard warranty coverage, TechKart Care includes: one accidental damage repair per year (screen damage, liquid damage), priority support, and free pickup and drop for repairs. TechKart Care plans are priced between ₹499 and ₹4,999 depending on the product and duration. Claims under TechKart Care are processed through the TechKart Support Portal within 5-7 business days.",
+    "tags": [
+      "TechKart Care",
+      "extended warranty",
+      "accidental damage",
+      "screen protection"
+    ],
+    "related_tos": "TOS-006"
+  },
+  {
+    "faq_id": "FAQ-023",
+    "category": "warranty_repairs",
+    "question": "My product broke down during delivery. What do I do?",
+    "answer": "If your product arrives visibly damaged (broken screen, dented body, non-functional), do not use it. Document the damage with photos/video and raise a return/replacement request within 48 hours from the Orders section. Select 'Damaged on Delivery' as the reason and upload the evidence. TechKart will arrange an immediate pickup and dispatch a replacement unit or issue a full refund. In such cases, there is no need to visit a service center — TechKart handles the replacement directly at no charge to you.",
+    "tags": [
+      "damaged delivery",
+      "broken on arrival",
+      "DOA",
+      "delivery damage"
+    ],
+    "related_tos": "TOS-001"
+  },
+  {
+    "faq_id": "FAQ-024",
+    "category": "warranty_repairs",
+    "question": "Where can I get my product repaired after the warranty period?",
+    "answer": "After the warranty period, you can: Visit the brand's authorized service center (paid repairs, genuine parts). If you have TechKart Care, contact TechKart Support to initiate a care claim. TechKart currently does not offer out-of-warranty repair services in-house. We recommend using only authorized service centers to ensure genuine parts and maintain device integrity. Unauthorized repairs may affect future insurance or protection plan claims.",
+    "tags": [
+      "out of warranty",
+      "repair",
+      "paid repair",
+      "service center"
+    ],
+    "related_tos": "TOS-006"
+  },
+  {
+    "faq_id": "FAQ-025",
+    "category": "account_profile",
+    "question": "How do I create a TechKart account?",
+    "answer": "Creating a TechKart account is simple and free. Visit techkart.in or open the TechKart app > Click 'Sign Up' > Enter your mobile number > Verify with OTP > Enter your name and email address > Set a password. Your account is ready instantly. You can also sign up using your Google account for faster registration. You must be at least 18 years old to create an account.",
+    "tags": [
+      "create account",
+      "sign up",
+      "register",
+      "new account"
+    ],
+    "related_tos": "TOS-007"
+  },
+  {
+    "faq_id": "FAQ-026",
+    "category": "account_profile",
+    "question": "How do I reset my password?",
+    "answer": "To reset your password: Go to the Login page > Click 'Forgot Password' > Enter your registered email or mobile number > You will receive an OTP or reset link. Follow the instructions to set a new password. Passwords must be at least 8 characters long and contain a mix of letters, numbers, and a special character. If you have trouble accessing your registered email or mobile number, contact support with your account details for manual verification.",
+    "tags": [
+      "forgot password",
+      "reset password",
+      "login issue",
+      "OTP"
+    ],
+    "related_tos": "TOS-007"
+  },
+  {
+    "faq_id": "FAQ-027",
+    "category": "account_profile",
+    "question": "How do I delete my TechKart account?",
+    "answer": "To delete your account, go to Account Settings > Privacy > 'Request Account Deletion'. You will be asked to confirm via OTP. Once confirmed, deletion is processed within 30 days. All personal data is permanently erased after deletion as per DPDP Act 2023 compliance. Note: Order history and invoice data is retained for 7 years for legal and tax compliance even after deletion. Pending orders must be delivered or cancelled before account deletion can be processed.",
+    "tags": [
+      "delete account",
+      "close account",
+      "data deletion",
+      "DPDP"
+    ],
+    "related_tos": "TOS-007"
+  },
+  {
+    "faq_id": "FAQ-028",
+    "category": "account_profile",
+    "question": "Can I have multiple TechKart accounts?",
+    "answer": "No, TechKart's policy allows only one account per individual. Multiple accounts created by the same individual may result in all accounts being permanently suspended. If you have forgotten your account credentials, use the 'Forgot Password' or 'Trouble Logging In' option to recover access. Family members living in the same household may have separate accounts registered to their respective mobile numbers.",
+    "tags": [
+      "multiple accounts",
+      "duplicate account",
+      "one account"
+    ],
+    "related_tos": "TOS-007"
+  },
+  {
+    "faq_id": "FAQ-029",
+    "category": "products_availability",
+    "question": "Are all products sold on TechKart genuine and brand-authorized?",
+    "answer": "Yes, 100%. TechKart is a direct seller and authorized reseller for all brands listed on the platform, including Apple, Samsung, Sony, Dell, HP, Lenovo, Asus, OnePlus, Canon, Nikon, Nvidia, AMD, Intel, Bose, and JBL, among others. All products pass through a warehouse QC check before dispatch. TechKart does not list grey market, parallel import, or third-party marketplace seller products. Every product comes with a valid manufacturer warranty and original invoice.",
+    "tags": [
+      "genuine",
+      "original",
+      "authentic",
+      "fake",
+      "brand authorized"
+    ],
+    "related_tos": "TOS-009"
+  },
+  {
+    "faq_id": "FAQ-030",
+    "category": "products_availability",
+    "question": "How do I know if a product is in stock?",
+    "answer": "Stock availability is shown on every product page. If the product is in stock, an 'Add to Cart' or 'Buy Now' button will be visible with the estimated delivery date for your pin code. If it says 'Currently Unavailable' or 'Out of Stock', you can click 'Notify Me' to receive an SMS/email when the product is back in stock. Stock levels update in real time, so availability may change frequently for high-demand products.",
+    "tags": [
+      "stock",
+      "out of stock",
+      "availability",
+      "notify me",
+      "in stock"
+    ],
+    "related_tos": "TOS-009"
+  },
+  {
+    "faq_id": "FAQ-031",
+    "category": "products_availability",
+    "question": "Can I pre-order products that haven't launched yet?",
+    "answer": "Yes, TechKart offers pre-order for upcoming products from major brands like Apple, Samsung, OnePlus, and others. Pre-order listings are published on or after the product's official announcement date. A pre-order secures your unit at the announced price and your order is dispatched on the product's launch/availability date. Pre-orders can be cancelled any time before dispatch for a full refund. Pre-order availability depends on brand and regional launch schedules.",
+    "tags": [
+      "pre-order",
+      "upcoming product",
+      "launch",
+      "reserve"
+    ],
+    "related_tos": "TOS-008"
+  },
+  {
+    "faq_id": "FAQ-032",
+    "category": "products_availability",
+    "question": "What if the product I want is out of stock?",
+    "answer": "Click 'Notify Me' on the product page and enter your email/phone — TechKart will send you an instant notification when the product is restocked. You can also check back periodically, as stock is replenished regularly. For high-demand launches (new iPhone, Samsung S-series), TechKart publishes restock dates on its homepage and social media channels. Consider adding the product to your Wishlist; you'll get a notification if there's a price drop or restock.",
+    "tags": [
+      "out of stock",
+      "restock",
+      "notify me",
+      "wishlist",
+      "when available"
+    ],
+    "related_tos": "TOS-009"
+  },
+  {
+    "faq_id": "FAQ-033",
+    "category": "customer_support",
+    "question": "How do I contact TechKart customer support?",
+    "answer": "TechKart offers multiple support channels: Phone: 1800-XXX-XXXX (Toll-Free, 9 AM – 9 PM, all 7 days). Live Chat: Available on the TechKart app and website (9 AM – 11 PM). Email: support@techkart.in (responses within 24 hours). WhatsApp: Send 'Hi' to +91-XXXXX-XXXXX for automated and live support. In-App: Go to Help & Support in the TechKart app for instant ticket creation and status tracking.",
+    "tags": [
+      "contact",
+      "support",
+      "helpline",
+      "customer care",
+      "email",
+      "chat"
+    ],
+    "related_tos": "TOS-010"
+  },
+  {
+    "faq_id": "FAQ-034",
+    "category": "customer_support",
+    "question": "What are TechKart customer support hours?",
+    "answer": "TechKart support hours are: Phone Support: 9 AM – 9 PM, all 7 days including public holidays. Live Chat: 9 AM – 11 PM, all 7 days. WhatsApp Bot (automated): 24x7. Email: Monitored 9 AM – 9 PM; replies within 24 hours. During peak periods (sale events, new launches), support queues may be longer; we recommend using the in-app chat or WhatsApp for faster responses.",
+    "tags": [
+      "support hours",
+      "timings",
+      "24x7",
+      "availability"
+    ],
+    "related_tos": "TOS-010"
+  },
+  {
+    "faq_id": "FAQ-035",
+    "category": "customer_support",
+    "question": "Does TechKart provide product setup or installation assistance?",
+    "answer": "TechKart offers free installation and setup assistance for large products including televisions (above 43 inches) and desktop PCs in select cities. A TechKart technician will contact you within 24 hours of delivery to schedule installation at your convenience. For other products (laptops, phones, headphones), setup guides and unboxing tutorials are available on the TechKart Help Center and YouTube channel. TechKart's AI Support Chat can also guide you through initial device setup steps.",
+    "tags": [
+      "setup",
+      "installation",
+      "TV installation",
+      "technician",
+      "assistance"
+    ],
+    "related_tos": "TOS-010"
+  }
+]

@@ -1,0 +1,10 @@
+pipecat-ai[sarvam]
+langgraph
+langchain-groq
+clickhouse-connect
+langfuse
+fastapi
+uvicorn
+sentence-transformers
+python-dotenv
+langchain

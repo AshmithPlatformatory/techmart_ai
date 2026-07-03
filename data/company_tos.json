@@ -1,0 +1,191 @@
+[
+  {
+    "doc_id": "TOS-001",
+    "title": "Return & Replacement Policy",
+    "category": "returns",
+    "tags": [
+      "return",
+      "replacement",
+      "7-day",
+      "10-day",
+      "product condition"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India offers a 7-day return window for most electronics from the date of delivery. Smartphones, tablets, and laptops qualify for return only if they are unopened or have a manufacturing defect confirmed by our QC team. For large appliances such as televisions, the return window is 10 days from delivery. Gaming consoles, GPUs, and CPUs are eligible for replacement only in case of dead-on-arrival (DOA) within 48 hours of delivery. To initiate a return, the product must be in its original packaging with all accessories, manuals, and warranty cards intact. Items showing physical damage caused by the customer, tampered IMEI or serial numbers, or missing MRP labels will not be accepted for return. TechKart reserves the right to reject a return request if the product does not meet the return eligibility criteria after inspection. Returned products undergo a quality check within 3 business days of being received at our warehouse. If the return is approved, a refund or replacement is initiated within 24 hours of QC approval. Replacement is subject to product availability; if unavailable, a full refund will be issued."
+  },
+  {
+    "doc_id": "TOS-002",
+    "title": "Refund Policy",
+    "category": "refunds",
+    "tags": [
+      "refund",
+      "bank transfer",
+      "timeline",
+      "original payment",
+      "wallet"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India processes refunds to the original payment method used during purchase. Refunds for UPI, debit card, and net banking payments are credited within 5-7 business days after return QC approval. Credit card refunds may take 7-10 business days depending on the card-issuing bank. EMI refunds are processed to the bank account linked to the EMI transaction; EMI cancellation fees charged by the bank are non-refundable by TechKart. If the original payment method is no longer active (expired card, closed account), customers must raise a support ticket and provide alternate bank details for manual NEFT transfer. TechKart Wallet credits issued as refunds are valid for 12 months and can be used on any future purchase on the platform. Delivery charges paid at the time of purchase are non-refundable unless the return reason is a manufacturing defect or wrong item delivered. Refunds are not issued for digital products, software licenses, or sealed consumables once opened. Partial refunds may be issued if only part of a bundled order is returned. Customers can track refund status in real time through the Orders section of their TechKart account."
+  },
+  {
+    "doc_id": "TOS-003",
+    "title": "Shipping & Delivery Policy",
+    "category": "shipping",
+    "tags": [
+      "shipping",
+      "delivery",
+      "timeline",
+      "pin code",
+      "express",
+      "tracking"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India ships to 27,000+ pin codes across India through its logistics partners including BlueDart, Delhivery, Ekart, and XpressBees. Standard delivery timelines are 2-4 business days for metro cities (Mumbai, Delhi, Bangalore, Chennai, Hyderabad, Pune, Kolkata) and 4-7 business days for Tier-2 and Tier-3 cities. Express delivery (next-day or same-day) is available in select metro areas for eligible products and is subject to an additional fee. Free shipping is applicable on all orders above ₹999; orders below ₹999 incur a flat delivery fee of ₹49. Heavy products such as televisions, monitors, and large speakers may take an additional 1-2 business days and require doorstep acknowledgment by the customer or an authorized representative. TechKart is not responsible for delivery delays caused by natural disasters, government restrictions, or logistics partner outages; customers will be notified via SMS and email in such cases. Once an order is shipped, customers receive a tracking ID via SMS, WhatsApp, and email to monitor real-time shipment status. If a delivery attempt fails due to the customer being unavailable, the logistics partner will make two more attempts before returning the package to TechKart. Re-delivery requests after a failed delivery can be raised within 48 hours; re-delivery charges may apply for non-metro locations. TechKart does not ship internationally at this time."
+  },
+  {
+    "doc_id": "TOS-004",
+    "title": "Payment Terms & Conditions",
+    "category": "payments",
+    "tags": [
+      "payment",
+      "UPI",
+      "credit card",
+      "debit card",
+      "net banking",
+      "COD",
+      "security"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India accepts payments via UPI (Google Pay, PhonePe, Paytm, BHIM), credit cards, debit cards, net banking, and TechKart Wallet. Cash on Delivery (COD) is available for orders up to ₹25,000 in eligible pin codes; COD is not available for high-value electronics such as laptops, smartphones above ₹50,000, and televisions. All transactions on TechKart are secured by 256-bit SSL encryption and are PCI-DSS compliant. TechKart does not store complete card details on its servers; card tokenization is handled by our payment gateway partners (Razorpay, PayU). If a payment is deducted but the order is not confirmed, TechKart will auto-initiate a refund within 48 business hours to the original payment source. Customers can save up to 3 payment methods (cards) in their TechKart account for faster checkout; saved cards are tokenized and cannot be accessed in full by TechKart. TechKart is not liable for unauthorized transactions that occur due to customer negligence (sharing OTPs, passwords). Prices displayed on TechKart are inclusive of applicable GST unless stated otherwise. TechKart reserves the right to cancel orders where fraudulent payment activity is detected. Convenience fees may apply for certain payment methods and will be displayed before order confirmation."
+  },
+  {
+    "doc_id": "TOS-005",
+    "title": "EMI & No-Cost EMI Terms",
+    "category": "emi",
+    "tags": [
+      "EMI",
+      "no-cost EMI",
+      "interest",
+      "bank",
+      "cancellation",
+      "foreclosure"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India offers EMI options through partner banks and NBFCs including HDFC Bank, ICICI Bank, SBI, Axis Bank, Kotak Mahindra, and Bajaj Finserv. No-Cost EMI is available on select products and specific bank credit cards; the interest amount is discounted upfront from the product price, making the total cost equivalent to the MRP. Standard EMI tenures range from 3 months to 24 months; No-Cost EMI is typically available for 3, 6, and 9 month tenures depending on the bank and product. EMI eligibility is determined by the bank and is subject to the customer's credit profile; TechKart is not responsible for EMI rejection by the bank. Debit card EMIs are available for select banks (HDFC, SBI, Kotak) for customers with sufficient account balance or pre-approved limits. Cardless EMI through Bajaj Finserv or ZestMoney requires the customer to have an active pre-approved credit limit with those partners. Processing fees charged by the bank for EMI conversion are borne by the customer and are not refunded by TechKart in case of product return. In case of an EMI product return, TechKart refunds the full product amount to the customer's bank account; the bank then settles the outstanding EMI balance and any applicable charges. Foreclosure of EMI is governed by the respective bank's policy; TechKart does not facilitate early EMI closure. TechKart is not a banking or financial services entity and acts only as a marketplace facilitating EMI options provided by partner financial institutions."
+  },
+  {
+    "doc_id": "TOS-006",
+    "title": "Warranty Policy",
+    "category": "warranty",
+    "tags": [
+      "warranty",
+      "manufacturer",
+      "extended warranty",
+      "claim",
+      "service center"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "All products sold on TechKart India are covered under the respective manufacturer's warranty, which varies by brand and product category. Typical warranty periods: smartphones 1 year, laptops 1-3 years, televisions 1-2 years, GPUs 3 years, CPUs 3 years, monitors 3 years, headphones 1-2 years, speakers 1 year, cameras 1-2 years. Warranty covers manufacturing defects, hardware failures, and component malfunctions under normal usage conditions. Warranty is void in cases of physical damage, liquid damage, unauthorized repairs, removal of warranty stickers/seals, software tampering, or use of non-standard chargers/accessories. Customers must retain the original invoice and warranty card to avail warranty service; TechKart provides a digital invoice that is accepted at all authorized service centers. Warranty claims must be made directly at the manufacturer's authorized service center; TechKart does not process warranty repairs in-house except for TechKart Care-enrolled products. TechKart Extended Warranty (TechKart Care) is available for purchase at checkout for eligible products, extending manufacturer warranty by 1 or 2 years at a discounted price. TechKart Care covers all defects covered under the manufacturer's standard warranty and additionally includes one accidental damage repair (screen damage, liquid damage) per year. TechKart Care claims are processed through TechKart's support portal and are subject to inspection by our service team. TechKart is not responsible for data loss during warranty servicing; customers are advised to back up all data before submitting a device for repair."
+  },
+  {
+    "doc_id": "TOS-007",
+    "title": "User Account Terms",
+    "category": "account",
+    "tags": [
+      "account",
+      "registration",
+      "password",
+      "eligibility",
+      "termination",
+      "data"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "To make purchases on TechKart India, users must register for a TechKart account using a valid Indian mobile number and email address. Users must be at least 18 years of age to create an account and make purchases; minors may use the platform only under parental or guardian supervision using the guardian's account. Each individual is permitted to hold only one active TechKart account; duplicate accounts may be suspended without notice. Users are responsible for maintaining the confidentiality of their account credentials; TechKart will never ask for your password via call, SMS, or email. Account access is linked to mobile OTP-based authentication; customers are advised to keep their registered mobile number active and accessible. TechKart reserves the right to suspend or terminate accounts found engaging in fraudulent activity, fake reviews, policy abuse (excessive returns), or reselling purchases in violation of brand policies. Customers may request account deletion through the Settings section; deletion requests are processed within 30 days, after which all personal data is permanently erased in accordance with India's Digital Personal Data Protection Act (DPDP Act) 2023. Order history and invoices are retained for 7 years post-deletion for legal and tax compliance purposes. Users must keep their shipping address and contact information updated to ensure smooth order delivery and communication. By registering on TechKart, users consent to receive transactional communications via SMS, email, and WhatsApp; marketing communications can be opted out of through account settings."
+  },
+  {
+    "doc_id": "TOS-008",
+    "title": "Cancellation Policy",
+    "category": "cancellation",
+    "tags": [
+      "cancellation",
+      "order cancel",
+      "before shipment",
+      "after shipment",
+      "refund timeline"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "Customers can cancel an order at no charge any time before the order has been shipped; cancellation can be done instantly through the Orders section of the TechKart app or website. Once an order has been shipped, it cannot be cancelled through the platform; customers must refuse delivery at the door, after which a return-to-origin (RTO) process is initiated. Refunds for pre-shipment cancellations are initiated within 2 business hours and credited to the original payment method within the standard refund timeline. For COD orders cancelled before shipment, no refund is applicable as no payment was collected. For pre-paid COD orders that are refused at delivery, the refund is processed within 7-10 business days after the product is received back at TechKart's warehouse. TechKart reserves the right to cancel orders in cases of: product unavailability after order placement, detection of fraudulent payment, incorrect pricing due to technical errors, or delivery non-feasibility to the specified pin code. Customers will be notified within 24 hours in case TechKart cancels an order, along with the reason and refund initiation confirmation. Pre-order and back-order products can be cancelled any time before the dispatch date without penalty. Partial cancellations are allowed for multi-item orders as long as the items are not yet shipped. Repeated order cancellations (more than 5 in a 30-day period) may trigger an account review and temporary restriction of COD payment option."
+  },
+  {
+    "doc_id": "TOS-009",
+    "title": "Product Authenticity & Quality Guarantee",
+    "category": "authenticity",
+    "tags": [
+      "genuine",
+      "authentic",
+      "brand authorized",
+      "quality check",
+      "counterfeit"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India guarantees that all products listed and sold on its platform are 100% genuine and sourced from brand-authorized distributors or directly from brand principals. TechKart is an authorized reseller for all major brands including Apple, Samsung, Sony, Dell, HP, Lenovo, Asus, OnePlus, Canon, Nikon, Bose, JBL, Nvidia, AMD, and Intel. Every product undergoes a mandatory Quality Check (QC) at TechKart's warehouse before dispatch; this includes IMEI/serial number verification, packaging integrity check, and accessory completeness check. All smartphones sold on TechKart are sold with valid IMEI numbers registered in India's CEIR (Central Equipment Identity Register), ensuring compliance with DoT regulations. Products imported in violation of Indian customs and import laws (grey market imports) are not listed on TechKart. If a customer suspects they have received a counterfeit product, they may report it within 7 days of delivery; TechKart will initiate a detailed investigation including authentication by the brand's authorized team. In the confirmed case of a counterfeit, TechKart will issue a full refund including original delivery charges and a compensation credit of ₹500 to the TechKart Wallet. TechKart prohibits third-party sellers from listing products on its platform; all listings are TechKart's own inventory, eliminating marketplace-associated authenticity risks. Products that have been used, refurbished, or opened before sale are clearly marked as 'Certified Refurbished' and carry a separate, lower price and adjusted warranty terms. Brand warranty cards and invoices provided with products are original and accepted at all authorized service centers nationwide."
+  },
+  {
+    "doc_id": "TOS-010",
+    "title": "Dispute Resolution & Grievance Redressal Policy",
+    "category": "disputes",
+    "tags": [
+      "dispute",
+      "grievance",
+      "escalation",
+      "consumer forum",
+      "arbitration",
+      "legal"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India is committed to resolving all customer disputes within a defined and transparent escalation framework. For any order-related issue, customers must first raise a support ticket through the TechKart app, website chat, or by calling our helpline at 1800-XXX-XXXX (toll-free, 9 AM - 9 PM, all days). First-level support aims to resolve standard queries (tracking, return initiation, refund status) within 24 hours. If the first-level response is unsatisfactory, customers may escalate to a Senior Support Executive; escalations are acknowledged within 4 business hours and resolved within 72 business hours. Unresolved escalations may be further escalated to TechKart's Grievance Officer whose contact details are published on the TechKart website as mandated by the Consumer Protection (E-Commerce) Rules, 2020. The Grievance Officer is obligated to respond within 48 hours and resolve or provide a resolution timeline within 30 days. Customers may also seek resolution through the National Consumer Helpline (NCH) at 1800-11-4000 or the E-Daakhil portal (edaakhil.nic.in) for filing consumer complaints online. For disputes involving amounts above ₹1,00,000, TechKart and the customer agree to resolve the matter through arbitration under the Arbitration and Conciliation Act, 1996, with arbitration to be conducted in Bengaluru, Karnataka. For amounts below ₹1,00,000, disputes are subject to the jurisdiction of Consumer Disputes Redressal Commissions (Consumer Forums) as per the Consumer Protection Act, 2019. TechKart maintains a zero-tolerance policy for retaliatory actions against customers who file complaints and will not restrict account access on the basis of complaint filing."
+  },
+  {
+    "doc_id": "TOS-011",
+    "title": "Privacy & Data Protection Policy",
+    "category": "privacy",
+    "tags": [
+      "privacy",
+      "data",
+      "DPDP",
+      "personal information",
+      "cookies",
+      "consent",
+      "third party"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "TechKart India collects personal information (name, email, phone number, delivery address, payment details) solely for the purpose of order processing, delivery, and customer support. Data collection and processing comply with India's Digital Personal Data Protection (DPDP) Act, 2023. TechKart does not sell, rent, or trade customer personal data to third parties for marketing purposes without explicit consent. Purchase history and browsing behavior on TechKart may be used internally to personalize product recommendations and offers; this data is anonymized before any analytical processing. TechKart shares minimal required data (name, phone number, delivery address) with logistics partners solely to fulfill delivery obligations. Payment data is handled exclusively by PCI-DSS certified payment gateways; TechKart does not store full card numbers or CVV information. TechKart uses cookies to enhance the browsing experience; users can manage cookie preferences through their browser settings. Customers have the right to access, correct, and delete their personal data through the account settings or by writing to privacy@techkart.in. TechKart retains order and transaction data for 7 years as required by Indian tax and legal regulations. In case of a data breach, TechKart will notify affected customers within 72 hours of discovery, as per DPDP Act requirements, and take immediate steps to mitigate impact."
+  },
+  {
+    "doc_id": "TOS-012",
+    "title": "Prohibited Use & Intellectual Property Policy",
+    "category": "prohibited_use",
+    "tags": [
+      "prohibited",
+      "intellectual property",
+      "trademark",
+      "misuse",
+      "commercial resale",
+      "scraping"
+    ],
+    "effective_date": "2024-01-01",
+    "last_updated": "2025-03-01",
+    "content": "The TechKart platform, including its website, mobile applications, content, product listings, images, logos, and trademarks, is the exclusive intellectual property of TechKart India Pvt. Ltd. Unauthorized reproduction, distribution, or commercial use of any TechKart content without written permission is strictly prohibited and may result in legal action. Customers are prohibited from using TechKart for: bulk or commercial resale of products (reselling at profit), fraudulent returns or warranty claims, creating fake accounts, submitting fake or incentivized reviews, or any activity that circumvents TechKart's pricing or offer mechanisms. Scraping, crawling, or automated extraction of product data, pricing, or customer information from TechKart's platform without prior written consent is prohibited. Use of TechKart's platform for money laundering, funding illegal activities, or making purchases with stolen payment credentials constitutes a criminal offense and will be reported to law enforcement. TechKart product images, descriptions, and specifications are proprietary content; third-party use requires explicit licensing. Brand names and logos displayed on TechKart (Apple, Samsung, Sony, etc.) are trademarks of their respective owners; TechKart uses them solely for product identification. Violations of this policy may result in immediate account suspension, order cancellation, forfeiture of TechKart Wallet balance, and initiation of legal proceedings. TechKart's APIs, if made available to developers, are governed by a separate API Terms of Use agreement. Customers who believe their intellectual property rights have been violated by any listing on TechKart may report the violation to legal@techkart.in for prompt review and action."
+  }
+]

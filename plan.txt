@@ -1,0 +1,143 @@
+
+
+### Phase 1: Environment Foundation & Telemetry Setup
+
+**Goal:** Establish the Windows workspace, secure dependency management, and initialize global observability.
+
+1. **Workspace Initialization:**
+* Open VS Code at `C:\platformatory\techmart_ai`.
+* Initialize a native Windows Python Virtual Environment (`python -m venv venv`) and activate it (`.\venv\Scripts\activate`).
+
+
+2. **Dependency Matrix Definition:**
+* Draft a strict `requirements.txt` locking in specific versions for `pipecat-ai[sarvam]`, `langgraph`, `langchain-groq`, `clickhouse-connect`, `langfuse`, `fastapi`, `uvicorn`, and `sentence-transformers`.
+
+
+3. **Environment Configuration:**
+* Load the provided `.env` file securely using `python-dotenv`.
+* Initialize the Langfuse Cloud client globally at the application root to ensure all subsequent LangGraph spans and LLM calls are traced automatically using the configured public/secret keys and host.
+
+
+
+
+
+### Phase 2: Database Architecture & Admin CMS
+
+**Goal:** Build the ClickHouse schemas, ingest the provided JSON datasets, and deploy the FastAPI Admin interface.
+
+1. **ClickHouse Schema Execution:**
+* Execute DDL statements via `clickhouse-connect` to build the required tables on your AWS-hosted ClickHouse cluster.
+
+
+* *Relational Tables:* Create `customers` and `order_history`.
+* *Vector/Hybrid Tables:* Create `company_faqs`, `company_tos`, and `product_catalog` with `Array(Float32)` columns for embeddings.
+* *Telemetry Table:* Create `call_tickets` to log session IDs, transcripts, and summary embeddings.
+
+
+2. **Local Embedding Pipeline Setup:**
+* Initialize the `all-MiniLM-L6-v2` model locally via `sentence-transformers` for zero-cost, high-speed vectorization of catalog items and FAQs.
+
+
+3. **Data Ingestion Scripting:**
+* Map the static JSON files to the ClickHouse tables. Generate embeddings for the text fields and execute batch inserts to populate the initial database state.
+
+
+4. **Admin UI Deployment:**
+* Build the `app.py`, `router.py`, and `index.html` structure.
+* Mount the FastAPI routes allowing an admin to view, add, and delete records from the `product_catalog`, `company_faqs`, and `company_tos` tables.
+* Wire the backend to automatically calculate embeddings and increment primary keys when the admin clicks "Update Clickhouse".
+
+
+
+### Phase 3: The Multi-Agent LangGraph Core
+
+**Goal:** Build the stateless cognitive engine that retrieves data and synthesizes responses without audio latency.
+
+1. **State Schema Definition:**
+* Define the `TypedDict` state holding the `messages`, `customer_profile`, `active_intents`, `detected_language`, and `retrieved_context`.
+
+
+2. **Tool & Worker Node Creation (Data Gatherers):**
+* *Support Worker:* Build vector search functions for FAQs and TOS.
+* *Order Worker:* Build SQL point-lookup functions for order history.
+* *Catalog Worker:* Build vector search functions for product specs.
+* *History Worker:* Build functions to fetch past `call_tickets` summaries.
+
+
+3. **Intent Router Node (The Supervisor):**
+* Configure a lightweight Groq LLM node (`llama-3.1-8b-instant` for maximum speed) instructed strictly to classify the user's intent and output a routing array to trigger the workers in parallel.
+
+
+4. **Response Synthesizer Node:**
+* Configure a heavy Groq LLM node (`llama3-70b-8192` for high reasoning) to read the `retrieved_context` and synthesize the final conversational English response.
+
+
+5. **Ticket Sink Node:**
+* Build the terminal node that summarizes the turn, generates an embedding, and pushes the async write to the ClickHouse `call_tickets` table.
+
+
+6. **Graph Compilation & Langfuse Hooking:**
+* Compile the graph (stateless, no checkpointer). Inject the Langfuse callback handler into the graph's config object to trace token usage and latency automatically.
+
+
+
+### Phase 4: The Real-Time Audio Pipeline (Pipecat)
+
+**Goal:** Construct the low-latency transport bridging Exotel audio to the LangGraph logic.
+
+1. **Exotel Transport Initialization:**
+* Set up Pipecat's `WebSocketServerTransport` configured explicitly with the `ExotelFrameSerializer` to handle 8kHz linear PCM audio streams.
+
+
+2. **Sarvam STT & TTS Integration:**
+* Inject `SarvamSTTService` into the pipeline. Configure it to utilize Sarvam's server-side VAD (`vad_signals=True`) to accurately manage caller barge-ins and dialect switching.
+* Inject `SarvamTTSService` to catch outgoing text frames and synthesize them back into the native dialect detected by the STT.
+
+
+3. **The LangGraph Adapter (FrameProcessor):**
+* Build the custom `LangchainProcessor` class.
+* Program it to intercept completed `TextFrame`s from Sarvam, construct the LangGraph state (injecting the caller's pre-fetched profile), asynchronously invoke the LangGraph instance, and yield the synthesized response back to Pipecat as an `LLMTextFrame`.
+
+
+
+### Phase 5: Telephony Handoff & Exotel Configuration
+
+**Goal:** Expose the local pipeline to the public internet and configure the telecom provider.
+
+1. **FastAPI WebSocket Endpoint:**
+* Create a FastAPI route (e.g., `ws://<domain>/ws/exotel`) that accepts inbound WebSocket connections and spawns a new Pipecat pipeline runner instance for every active call.
+* Extract the caller's phone number from the initial WebSocket connection headers to execute the Phase 3 profile initialization.
+
+
+2. **Ngrok Tunneling:**
+* Deploy an Ngrok tunnel to expose your local Windows 11 `localhost:8000` port to a secure public `wss://` URL.
+
+
+3. **Exotel App Bazaar Flow:**
+* Log into the Exotel dashboard. Create a new call flow.
+* Add a "Voicebot" applet and paste the Ngrok `wss://` URL. Configure it to stream bidirectional audio.
+
+
+
+### Phase 6: System Testing & Tuning
+
+**Goal:** Verify latency, token consumption, and edge-case behavior.
+
+1. **Latency Profiling:**
+* Execute test calls. Monitor the Langfuse dashboard to verify that the Fan-Out parallel workers are executing concurrently, keeping total database lookup time under 300ms.
+
+
+2. **Barge-in Verification:**
+* Test interrupting the agent mid-sentence. Verify that Sarvam's VAD triggers the Pipecat interrupt frames and halts the TTS audio buffer instantly.
+
+
+3. **Prompt & Token Optimization:**
+* Review the Langfuse trace token metrics. Trim the system prompts in the Router and Synthesizer nodes to minimize input token costs on Groq. Ensure the RAG workers are only returning the top `k=1` or `k=2` most relevant ClickHouse rows to prevent context bloat.
+
+
+points - 
+
+tone of the customer
+dialects 
+
+What is different compared to other existing models
