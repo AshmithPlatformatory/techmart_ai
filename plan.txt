@@ -83,10 +83,10 @@
 
 ### Phase 4: The Real-Time Audio Pipeline (Pipecat)
 
-**Goal:** Construct the low-latency transport bridging Exotel audio to the LangGraph logic.
+**Goal:** Construct the low-latency transport bridging Vobiz audio to the LangGraph logic.
 
-1. **Exotel Transport Initialization:**
-* Set up Pipecat's `WebSocketServerTransport` configured explicitly with the `ExotelFrameSerializer` to handle 8kHz linear PCM audio streams.
+1. **Vobiz Transport Initialization:**
+* Set up Pipecat's `WebSocketServerTransport` configured explicitly with the `VobizFrameSerializer` to handle 8kHz linear PCM audio streams.
 
 
 2. **Sarvam STT & TTS Integration:**
@@ -100,12 +100,12 @@
 
 
 
-### Phase 5: Telephony Handoff & Exotel Configuration
+### Phase 5: Telephony Handoff & Vobiz Configuration
 
 **Goal:** Expose the local pipeline to the public internet and configure the telecom provider.
 
 1. **FastAPI WebSocket Endpoint:**
-* Create a FastAPI route (e.g., `ws://<domain>/ws/exotel`) that accepts inbound WebSocket connections and spawns a new Pipecat pipeline runner instance for every active call.
+* Create a FastAPI route (e.g., `ws://<domain>/ws/vobiz`) that accepts inbound WebSocket connections and spawns a new Pipecat pipeline runner instance for every active call.
 * Extract the caller's phone number from the initial WebSocket connection headers to execute the Phase 3 profile initialization.
 
 
@@ -113,9 +113,9 @@
 * Deploy an Ngrok tunnel to expose your local Windows 11 `localhost:8000` port to a secure public `wss://` URL.
 
 
-3. **Exotel App Bazaar Flow:**
-* Log into the Exotel dashboard. Create a new call flow.
-* Add a "Voicebot" applet and paste the Ngrok `wss://` URL. Configure it to stream bidirectional audio.
+3. **Vobiz Webhook Flow:**
+* Log into the Vobiz dashboard. Configure a webhook.
+* Point the webhook to the Ngrok `wss://` URL. Configure it to stream bidirectional audio.
 
 
 

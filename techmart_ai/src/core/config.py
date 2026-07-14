@@ -23,8 +23,8 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 SARVAM_API_KEY = os.environ.get("SARVAM_API_KEY")
 
-VOBIZ_AUTH_ID = os.environ.get("VOBIZ_AUTH_ID")
-VOBIZ_AUTH_TOKEN = os.environ.get("VOBIZ_AUTH_TOKEN")
+EXOTEL_API_KEY = os.environ.get("EXOTEL_API_KEY")
+EXOTEL_API_TOKEN = os.environ.get("EXOTEL_API_TOKEN")
 
 CLICKHOUSE_HOST = os.environ.get("CLICKHOUSE_HOST")
 CLICKHOUSE_PORT = os.environ.get("CLICKHOUSE_PORT")

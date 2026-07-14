@@ -1,14 +1,10 @@
 # TechMart Enterprise Voice Agent
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.103.1-green.svg)](https://fastapi.tiangolo.com/)
-[![Pipecat](https://img.shields.io/badge/Pipecat-0.0.108-orange.svg)](https://pipecat.ai/)
-
 ## Overview
 
-The TechMart Enterprise Voice Agent is a real-time, stateless cognitive voice engine built to handle enterprise-level customer interactions. It bridges **Vobiz.ai** audio streams with a multi-agent **LangGraph** core, utilizing **Pipecat** for low-latency transport and **Sarvam AI** for Speech-to-Text (STT) and Text-to-Speech (TTS) capabilities.
+The TechMart Enterprise Voice Agent is a real-time, stateless cognitive voice engine built to handle enterprise-level customer interactions. It bridges Exotel audio streams with a multi-agent LangGraph core, utilizing Pipecat for low-latency transport and Sarvam for Speech-to-Text (STT) and Text-to-Speech (TTS) capabilities.
 
-The system features dynamic intent routing, retrieval-augmented generation (RAG) using local embeddings (`SentenceTransformers`) against an AWS-hosted **ClickHouse** database, and real-time observability via **Langfuse**. 
+The system features dynamic intent routing, retrieval-augmented generation (RAG) using local embeddings (SentenceTransformers) against an AWS-hosted ClickHouse database, and real-time observability via Langfuse. 
 
 ### Key Differentiators
 
@@ -20,14 +16,12 @@ The system features dynamic intent routing, retrieval-augmented generation (RAG)
 ## System Architecture
 
 * **Framework**: FastAPI (WebSocket and REST Admin API)
-* **Voice Transport**: Pipecat-AI, Vobiz.ai
+* **Voice Transport**: Pipecat-AI, Exotel
 * **Cognitive Engine**: LangGraph, Langchain (Groq LLM)
 * **Speech Services**: Sarvam STT/TTS
 * **Vector Database & Data Warehouse**: ClickHouse
 * **Local Embedding**: Sentence-Transformers (all-MiniLM-L6-v2)
 * **Observability**: Langfuse
-
-> **Note on Vobiz Integration:** Vobiz's audio stream is structurally identical to Twilio's Media Streams WebSocket protocol. To handle Vobiz streams within Pipecat without relying on external custom scripts, this project utilizes Pipecat's native `TwilioFrameSerializer` to decode the base64 μ-law payloads seamlessly.
 
 ## Local Development Setup
 
@@ -101,7 +95,7 @@ SARVAM_API_KEY=your_sarvam_key
 
 1. **Start the FastAPI Server**
 
-Run the FastAPI application using Uvicorn. This will expose both the Admin CMS UI and the Vobiz.ai WebSocket endpoint on port 8000.
+Run the FastAPI application using Uvicorn. This will expose both the Admin CMS UI and the Exotel WebSocket endpoint on port 8000.
 
 ```bash
 uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
@@ -109,13 +103,13 @@ uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 2. **Expose Localhost via Ngrok**
 
-To allow Vobiz.ai to route calls to your local WebSocket endpoint, you need to expose your server to the internet using Ngrok.
+To allow Exotel to route calls to your local WebSocket endpoint, you need to expose your server to the internet using Ngrok.
 
 ```bash
 # In a separate terminal
 ngrok http 8000
 ```
-Note the `wss://` URL provided by Ngrok (e.g., `wss://<ngrok-id>.ngrok-free.app/ws/vobiz`) and configure it within your Vobiz.ai console or webhook flow.
+Note the `wss://` URL provided by Ngrok (e.g., `wss://<ngrok-id>.ngrok-free.app/ws/exotel`) and configure it within your Exotel App Bazaar voicebot flow.
 
 ### Project Structure
 

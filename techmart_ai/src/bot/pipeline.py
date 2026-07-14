@@ -8,7 +8,7 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.task import PipelineTask
 from pipecat.services.sarvam.stt import SarvamSTTService
 from pipecat.services.sarvam.tts import SarvamTTSService
-from pipecat.serializers.twilio import TwilioFrameSerializer
+from pipecat.serializers.plivo import PlivoFrameSerializer
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketTransport, FastAPIWebsocketParams
 from pipecat.transcriptions.language import Language
 from src.bot.adapter import LangGraphProcessor
@@ -40,11 +40,11 @@ class WebFrameSerializer(FrameSerializer):
         return None
 
 
-def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, customer_profile: dict, client_type: str = "vobiz"):
+def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, customer_profile: dict, client_type: str = "plivo"):
     sarvam_api_key = os.environ.get("SARVAM_API_KEY")
 
-    if client_type == "vobiz":
-        serializer = TwilioFrameSerializer(stream_sid=stream_id)
+    if client_type == "plivo":
+        serializer = PlivoFrameSerializer(stream_id=stream_id)
     else:
         serializer = WebFrameSerializer()
 

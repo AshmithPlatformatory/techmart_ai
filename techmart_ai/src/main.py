@@ -16,16 +16,16 @@ app = FastAPI(title="TechMart Enterprise Voice Agent")
 
 app.include_router(admin_router)
 
-@app.post("/vobiz-xml")
-@app.get("/vobiz-xml")
-async def get_vobiz_xml(request: Request):
+@app.post("/plivo-xml")
+@app.get("/plivo-xml")
+async def get_plivo_xml(request: Request):
     # Determine the current ngrok host to construct the websocket URL dynamically
     host = request.headers.get("host")
     protocol = "wss"
     
     xml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Stream url="{protocol}://{host}/ws/vobiz" />
+    <Stream url="{protocol}://{host}/ws/plivo" />
 </Response>"""
     return Response(content=xml_response, media_type="application/xml")
 
@@ -61,9 +61,9 @@ async def handle_websocket(websocket: WebSocket, client_type: str):
     except Exception as e:
         print(f"Call session terminated: {e}")
 
-@app.websocket("/ws/vobiz")
-async def vobiz_websocket_endpoint(websocket: WebSocket):
-    await handle_websocket(websocket, "vobiz")
+@app.websocket("/ws/plivo")
+async def plivo_websocket_endpoint(websocket: WebSocket):
+    await handle_websocket(websocket, "plivo")
 
 @app.websocket("/ws/web")
 async def web_websocket_endpoint(websocket: WebSocket):
