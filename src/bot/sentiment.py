@@ -40,7 +40,7 @@ class VoiceSentimentProcessor(FrameProcessor):
             self._is_speaking = False
             if len(self._audio_buffer) > 0:
                 audio_data = bytes(self._audio_buffer)
-                await self._analyze_sentiment(audio_data, direction)
+                asyncio.create_task(self._analyze_sentiment(audio_data, direction))
             await self.push_frame(frame, direction)
 
         elif isinstance(frame, InputAudioRawFrame):

@@ -5,10 +5,9 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any
 from src.db.clickhouse_client import get_client
-from sentence_transformers import SentenceTransformer
+from src.model_loader import get_sentence_transformer
 
 admin_router = APIRouter(prefix="/admin")
-model = SentenceTransformer('all-MiniLM-L6-v2')
 html_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
 
 class QueryData(BaseModel):

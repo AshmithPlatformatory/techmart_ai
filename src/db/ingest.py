@@ -1,15 +1,12 @@
 import json
 import os
 import datetime
-from sentence_transformers import SentenceTransformer
+from src.model_loader import get_sentence_transformer
 from src.db.clickhouse_client import get_client
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
-
-
-model = SentenceTransformer('all-MiniLM-L6-v2')
 
 def load_json(filename):
     filepath = os.path.join("data", filename)
@@ -39,7 +36,7 @@ def ingest_data():
     logger.info("Ingesting Company FAQs...")
     faqs = load_json("company_faqs.json")
     for f in faqs:
-        f["question_embedding"] = model.encode(f["question"]).tolist()
+        f["question_embedding"] = get_sentence_transformer().encode(f["question"]).tolist()
     faq_cols = list(faqs[0].keys())
     faq_data = [[f.get(col) for col in faq_cols] for f in faqs]
     client.insert("company_faqs", faq_data, column_names=faq_cols)
@@ -70,7 +67,7 @@ def ingest_data():
             "rating": float(meta.get("rating", 0)),
             "in_stock": 1 if meta.get("in_stock") else 0,
             "price_tier": meta.get("price_tier"),
-            "embedding": model.encode(meta.get("name", p.get("page_content"))).tolist()
+            "embedding": get_sentence_transformer().encode(meta.get("name", p.get("page_content"))).tolist()
         }
         catalog_data.append(row)
     

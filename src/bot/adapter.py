@@ -1,119 +1,166 @@
 """
 This module implements the LangGraph adapter for Pipecat.
-It acts as a custom FrameProcessor that intercepts STT text frames,
-constructs the conversational state, executes the LangGraph workflow,
-and yields the generated text back to the pipeline for TTS synthesis.
+It subclasses OpenAILLMService so our LangGraph workflow becomes the LLM stage of the
+voice pipeline, inheriting trace spans, TTFB metrics, and proper interruption (barge-in) handling.
 """
 import uuid
 import math
 import asyncio
-from langchain_core.messages import HumanMessage, AIMessage
-from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
-from pipecat.frames.frames import (
-    TextFrame,
-    LLMFullResponseStartFrame,
-    LLMTextFrame,
-    LLMFullResponseEndFrame,
-    EndFrame,
-    OutputAudioRawFrame,
-    InterruptionFrame,
-    CancelFrame,
+import re
+import os
+from typing import Any
+
+from langchain_core.messages import (
+    AIMessage,
+    ToolMessage,
+    SystemMessage,
+    convert_to_messages,
+    convert_to_openai_messages,
 )
-from src.bot.sentiment import VoiceSentimentFrame
+from pipecat.frames.frames import (
+    OutputAudioRawFrame,
+    EndFrame,
+    TTSUpdateSettingsFrame,
+    LLMTextFrame,
+)
+from pipecat.processors.aggregators.llm_context import LLMContext
+from pipecat.services.openai.llm import OpenAILLMService
+from pipecat.utils.tracing.service_decorators import traced_llm
+from pipecat.transcriptions.language import Language
+from pipecat.services.sarvam.tts import SarvamTTSService
+
 from src.graph.workflow import stream_graph_with_tracing
+from src.graph.nodes import write_call_ticket
 
 
-class LangGraphProcessor(FrameProcessor):
-    def __init__(self, customer_profile: dict):
-        super().__init__()
+def _tool_exchange(input_messages: list, final_messages: list) -> list:
+    """This turn's tool-call exchange, to persist back into Pipecat's context.
+
+    Only the tool-deciding AIMessages and the ToolMessages they produced —
+    NOT the final spoken answer: the assistant aggregator records that from
+    the pushed LLMTextFrames. Persisting these first keeps the context order
+    correct: [..., user, AI(tool_calls), ToolMessage, AI(final answer)].
+    """
+    new_messages = final_messages[len(input_messages):]
+    return [
+        m
+        for m in new_messages
+        if isinstance(m, ToolMessage) or (isinstance(m, AIMessage) and m.tool_calls) or isinstance(m, SystemMessage)
+    ]
+
+
+class LangGraphLLMService(OpenAILLMService):
+    """Runs a compiled LangGraph graph as the Pipecat LLM stage."""
+
+    def __init__(self, *, customer_profile: dict, call_id: str, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
         self._customer_profile = customer_profile
-        self._memory = []
+        self._call_id = call_id
         self._session_id = uuid.uuid4().hex
+        self._ticket_id = f"TKT-{uuid.uuid4().hex[:8].upper()}"
         self._handoff_status = "None"
         self._user_emotion = "neutral"
-        self._graph_task = None
 
-    async def process_frame(self, frame, direction=FrameDirection.DOWNSTREAM):
-        await super().process_frame(frame, direction)
+    @traced_llm
+    async def _process_context(self, context: LLMContext) -> None:
+        messages = convert_to_messages(
+            [m for m in context.get_messages() if m.get("role") != "system"]
+        )
 
-        if isinstance(frame, (InterruptionFrame, CancelFrame)):
-            if self._graph_task and not self._graph_task.done():
-                self._graph_task.cancel()
-            await self.push_frame(frame, direction)
+        # Read detected_language from customer_profile (written by LanguageInterceptor
+        # after each STT TranscriptionFrame). Default to en-IN since translate mode
+        # always returns English text — we only need the language for TTS output.
+        detected_lang_str = self._customer_profile.get("detected_language", "en-IN")
 
-        elif isinstance(frame, VoiceSentimentFrame):
-            self._user_emotion = frame.emotion
-            await self.push_frame(frame, direction)
+        state = {
+            "messages": messages,
+            "customer_profile": self._customer_profile,
+            "session_id": self._session_id,
+            "active_intents": [],
+            "detected_language": detected_lang_str,
+            "retrieved_context": [],   # Always reset each turn (state.py has no operator.add)
+            "handoff_status": self._handoff_status,
+            "user_emotion": self._user_emotion,
+            "ticket_id": self._ticket_id,
+        }
 
-        elif isinstance(frame, TextFrame):
-            user_text = frame.text.strip()
-            if not user_text:
-                return
+        await self.start_ttfb_metrics()
+        first_token = True
+        final_state = state
 
-            self._memory.append(HumanMessage(content=user_text))
-
-            state = {
-                "messages": list(self._memory),
-                "customer_profile": self._customer_profile,
-                "session_id": self._session_id,
-                "active_intents": [],
-                "detected_language": "en",
-                "retrieved_context": [],
-                "handoff_status": self._handoff_status,
-                "user_emotion": self._user_emotion,
-            }
-
-            self._graph_task = asyncio.create_task(self._run_graph(state, direction))
-
-        else:
-            await self.push_frame(frame, direction)
-
-    async def _run_graph(self, state: dict, direction: FrameDirection):
         try:
-            await self.push_frame(LLMFullResponseStartFrame(), direction)
-
-            full_ai_message = ""
-            final_state = state
             async for stream_type, data in stream_graph_with_tracing(state):
                 if stream_type == "messages":
                     chunk, metadata = data
                     if metadata.get("langgraph_node") == "synthesizer":
                         content = chunk.content
                         if content:
-                            full_ai_message += content
-                            await self.push_frame(LLMTextFrame(content), direction)
+                            if first_token:
+                                await self.stop_ttfb_metrics()
+                                first_token = False
+                            await self.push_frame(LLMTextFrame(content))
                 elif stream_type == "values":
                     final_state = data
 
-            self._handoff_status = final_state.get("handoff_status", "None")
-            self._memory.append(AIMessage(content=full_ai_message))
-
-            if self._handoff_status == "Accepted":
-                sample_rate = 16000
-                duration = 0.5
-                frequency = 800
-                audio_data = bytearray()
-                for i in range(int(sample_rate * duration)):
-                    sample = int(16000 * math.sin(2 * math.pi * frequency * i / sample_rate))
-                    audio_data.extend(sample.to_bytes(2, byteorder="little", signed=True))
-
-                await self.push_frame(
-                    OutputAudioRawFrame(
-                        audio=bytes(audio_data),
-                        sample_rate=sample_rate,
-                        num_channels=1,
-                    ),
-                    direction,
+            # --- Fix 7: Push TTS language AFTER we have the confirmed final state ---
+            # This avoids the race condition where TTS reconfigures mid-first-token.
+            # final_state["detected_language"] is set by the synthesizer_node from
+            # the language the STT detected, which is the language TTS must speak in.
+            final_lang_str = final_state.get("detected_language", detected_lang_str)
+            try:
+                lang_enum = Language(final_lang_str)
+            except ValueError:
+                lang_enum = Language.EN_IN
+            await self.push_frame(
+                TTSUpdateSettingsFrame(
+                    delta=SarvamTTSService.Settings(language=lang_enum)
                 )
-                await self.push_frame(EndFrame(), direction)
-                return
+            )
 
-            await self.push_frame(LLMFullResponseEndFrame(), direction)
+            # Update our internal state
+            self._handoff_status = final_state.get("handoff_status", "None")
+
+            # Persist tool calls back to LLMContext
+            final_messages = final_state.get("messages", [])
+            if final_messages:
+                to_persist = _tool_exchange(messages, final_messages)
+                if to_persist:
+                    context.add_messages(convert_to_openai_messages(to_persist))
+
+            # --- Fix 4: Write ticket as fire-and-forget background task ---
+            # Does NOT block the user from hearing the response.
+            asyncio.create_task(write_call_ticket(final_state))
+
+            # Handoff logic
+            if self._handoff_status == "Accepted":
+                auth_id = os.environ.get("VOBIZ_AUTH_ID")
+                auth_token = os.environ.get("VOBIZ_AUTH_TOKEN")
+                public_url = os.environ.get("PUBLIC_URL")
+                
+                if auth_id and auth_token and public_url and self._call_id:
+                    import aiohttp
+                    vobiz_url = f"https://api.vobiz.ai/api/v1/Account/{auth_id}/Call/{self._call_id}/"
+                    transfer_data = {
+                        "legs": "aleg",
+                        "aleg_url": f"{public_url.rstrip('/')}/transfer-to-human",
+                        "aleg_method": "POST"
+                    }
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            await session.post(
+                                vobiz_url,
+                                headers={"X-Auth-ID": auth_id, "X-Auth-Token": auth_token},
+                                json=transfer_data
+                            )
+                        print("[TRANSFER] Initiated transfer via Vobiz API")
+                    except Exception as e:
+                        print(f"[TRANSFER] Failed to initiate transfer: {e}")
+                
+                # Push EndFrame just in case the transfer fails or is delayed. Vobiz will hang up anyway on transfer.
+                await self.push_frame(EndFrame())
 
         except asyncio.CancelledError:
-            # We were interrupted by the user speaking over the bot
+            # Expected if the user interrupts (barge-in).
+            # Note: The finally block in the handoff logic ensures
+            # the call still hangs up if interrupted there.
             pass
-        except Exception:
-            error_msg = "I am currently experiencing technical difficulties. Please hold on."
-            await self.push_frame(LLMTextFrame(error_msg), direction)
-            await self.push_frame(LLMFullResponseEndFrame(), direction)
