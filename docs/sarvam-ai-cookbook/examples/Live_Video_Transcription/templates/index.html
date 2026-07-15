@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Lecture Transcription - Sarvam AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎤 Live Lecture Transcription</h1>
+            <p>Powered by Sarvam AI Streaming</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Video Section -->
+            <div class="video-section">
+                <h2>📹 Video Player</h2>
+                <video
+                    id="demoVideo"
+                    controls
+                    width="100%"
+                    height="auto"
+                    crossorigin="anonymous"
+                    muted="false">
+                    <!-- No video is bundled with this demo; upload one below -->
+                    Your browser doesn't support HTML5 video.
+                </video>
+
+                <!-- Video Upload -->
+                <div class="controls">
+                    <label for="videoUpload">🎬 Upload a video (with speech):</label>
+                    <input type="file" id="videoUpload" accept="video/*" />
+                </div>
+
+                <!-- Video Controls -->
+                <div class="controls">
+                    <button id="startTranscription" class="btn-primary">Start Transcription</button>
+                    <button id="stopTranscription" class="btn-secondary" disabled>Stop Transcription</button>
+                    <button id="startTranslation" class="btn-primary">Start Translation</button>
+                    <button id="stopTranslation" class="btn-secondary" disabled>Stop Translation</button>
+                    <span id="status" class="status">Ready to transcribe</span>
+                </div>
+            </div>
+
+            <!-- Transcription Section -->
+            <div class="transcription-section">
+                <h2>📝 Live Transcription</h2>
+                <div id="transcriptionOutput" class="transcription-output">
+                    <p class="placeholder">Transcriptions will appear here in real-time...</p>
+                </div>
+                
+                <!-- Transcription Stats -->
+                <div class="stats">
+                    <span>Chunks processed: <span id="chunksProcessed">0</span></span>
+                    <span>Current time: <span id="currentTime">00:00</span></span>
+                </div>
+            </div>
+
+            <!-- Translation Section -->
+            <div class="transcription-section">
+                <h2>🌍 Live Translation (to English)</h2>
+                <div id="translationOutput" class="transcription-output">
+                    <p class="placeholder">Translations will appear here in real-time...</p>
+                </div>
+                
+                <!-- Translation Stats -->
+                <div class="stats">
+                    <span>Translation chunks: <span id="translationChunksProcessed">0</span></span>
+                    <span>Current time: <span id="translationCurrentTime">00:00</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Demo: Real-time speech-to-text using Sarvam AI</p>
+        </footer>
+    </div>
+
+    <script>
+        let socket = io();
+        let isRecording = false;
+        let isTranslating = false;
+        let chunkCounter = 0;
+        let translationChunkCounter = 0;
+        let startTime;
+        let videoLoaded = false;
+
+        // DOM elements
+        const video = document.getElementById('demoVideo');
+        const status = document.getElementById('status');
+        const timeDisplay = document.getElementById('currentTime');
+
+        // Audio processing variables
+        let audioContext, mediaStreamSource, processor;
+
+        // Load a user-selected video file into the player
+        const videoUpload = document.getElementById('videoUpload');
+        if (videoUpload) {
+            videoUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.load();
+                videoLoaded = true;
+                updateStatus(`Loaded: ${file.name}`, 'info');
+            });
+        }
+
+        // Update status
+        function updateStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // WebSocket event handlers
+        socket.on('connect', function() {
+            console.log('✅ Connected to server');
+            updateStatus('Connected to transcription service', 'success');
+        });
+        
+        socket.on('transcription_result', function(data) {
+            displayResult('transcriptionOutput', data && data.text);
+        });
+
+        socket.on('translation_result', function(data) {
+            displayResult('translationOutput', data && data.text);
+        });
+
+        socket.on('status', function(data) {
+            if (data && data.message) {
+                updateStatus(data.message, 'info');
+            }
+        });
+        
+        socket.on('error', function(error) {
+            console.error('❌ Socket error:', error);
+            updateStatus('Connection error', 'error');
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('❌ Disconnected from server');
+            updateStatus('Disconnected', 'error');
+        });
+
+        // Video event handlers
+        video.addEventListener('timeupdate', function() {
+            timeDisplay.textContent = formatTime(video.currentTime);
+        });
+        
+        video.addEventListener('play', function() {
+            socket.emit('video_control', {action: 'play', timestamp: video.currentTime});
+        });
+        
+        video.addEventListener('pause', function() {
+            socket.emit('video_control', {action: 'pause', timestamp: video.currentTime});
+        });
+        
+        // Button event handlers
+        document.getElementById('startTranscription').addEventListener('click', startTranscription);
+        document.getElementById('stopTranscription').addEventListener('click', stopTranscription);
+        document.getElementById('startTranslation').addEventListener('click', startTranslation);
+        document.getElementById('stopTranslation').addEventListener('click', stopTranslation);
+        
+        // Initialize
+        updateStatus('Ready to transcribe', 'info');
+        
+        function startTranscription() {
+            if (isRecording) return;
+            if (!videoLoaded) {
+                updateStatus('Please upload a video first', 'error');
+                return;
+            }
+
+            isRecording = true;
+            startTime = Date.now();
+            chunkCounter = 0;
+            clearTranscriptionDisplay();
+
+            // Update UI
+            document.getElementById('startTranscription').disabled = true;
+            document.getElementById('stopTranscription').disabled = false;
+            document.getElementById('status').textContent = 'Starting transcription...';
+
+            // Open a persistent streaming session on the server
+            socket.emit('start_stream', { mode: 'transcribe' });
+
+            // Start recording if not already started
+            if (!audioContext) {
+                startRecording();
+            }
+        }
+
+        function stopTranscription() {
+            if (!isRecording) return;
+
+            isRecording = false;
+
+            // Update UI
+            document.getElementById('startTranscription').disabled = false;
+            document.getElementById('stopTranscription').disabled = true;
+            document.getElementById('status').textContent = 'Transcription stopped';
+
+            // Close the server-side streaming session
+            socket.emit('stop_stream', { mode: 'transcribe' });
+
+            // Stop recording if translation is also not active
+            if (!isTranslating) {
+                stopRecording();
+            }
+        }
+
+        function startTranslation() {
+            if (isTranslating) return;
+            if (!videoLoaded) {
+                updateStatus('Please upload a video first', 'error');
+                return;
+            }
+
+            isTranslating = true;
+            startTime = Date.now();
+            translationChunkCounter = 0;
+            clearTranslationDisplay();
+
+            // Update UI
+            document.getElementById('startTranslation').disabled = true;
+            document.getElementById('stopTranslation').disabled = false;
+            document.getElementById('status').textContent = 'Starting translation...';
+
+            // Open a persistent streaming session on the server
+            socket.emit('start_stream', { mode: 'translate' });
+
+            // Start recording if not already started
+            if (!audioContext) {
+                startRecording();
+            }
+        }
+
+        function stopTranslation() {
+            if (!isTranslating) return;
+
+            isTranslating = false;
+
+            // Update UI
+            document.getElementById('startTranslation').disabled = false;
+            document.getElementById('stopTranslation').disabled = true;
+            document.getElementById('status').textContent = 'Translation stopped';
+
+            // Close the server-side streaming session
+            socket.emit('stop_stream', { mode: 'translate' });
+
+            // Stop recording if transcription is also not active
+            if (!isRecording) {
+                stopRecording();
+            }
+        }
+        
+        // Resample audio to target sample rate
+        function resampleAudio(audioBuffer, sourceSampleRate, targetSampleRate) {
+            if (sourceSampleRate === targetSampleRate) {
+                return audioBuffer;
+            }
+            
+            const ratio = sourceSampleRate / targetSampleRate;
+            const outputLength = Math.floor(audioBuffer.length / ratio);
+            const output = new Int16Array(outputLength);
+            
+            for (let i = 0; i < outputLength; i++) {
+                const sourceIndex = Math.floor(i * ratio);
+                output[i] = audioBuffer[sourceIndex];
+            }
+            
+            return output;
+        }
+        
+        // Audio helper functions
+        function encodeWAV(audioBuffer, sampleRate) {
+            const length = audioBuffer.length;
+            const arrayBuffer = new ArrayBuffer(44 + length * 2);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, length * 2, true);
+            
+            // Copy audio data
+            const audioData = new Int16Array(arrayBuffer, 44);
+            audioData.set(audioBuffer);
+            
+            return arrayBuffer;
+        }
+        
+        function arrayBufferToBase64(buffer) {
+            const uint8Array = new Uint8Array(buffer);
+            let binaryString = '';
+            const chunkSize = 8192; // 8KB chunks to avoid stack overflow
+            
+            for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                const chunk = uint8Array.slice(i, i + chunkSize);
+                binaryString += String.fromCharCode.apply(null, chunk);
+            }
+            
+            return btoa(binaryString);
+        }
+
+        // Combine buffered audio frames into one WAV chunk and stream it to the server
+        function sendAudioChunk(mode, audioChunks, videoTime) {
+            if (audioChunks.length === 0) return;
+
+            const totalLength = audioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+            const combinedBuffer = new Int16Array(totalLength);
+            let offset = 0;
+            for (const chunk of audioChunks) {
+                combinedBuffer.set(chunk, offset);
+                offset += chunk.length;
+            }
+
+            // Resample to the 16kHz mono the API expects
+            const resampledBuffer = resampleAudio(combinedBuffer, audioContext.sampleRate, 16000);
+            const base64Audio = arrayBufferToBase64(encodeWAV(resampledBuffer, 16000));
+
+            if (mode === 'transcribe') {
+                socket.emit('audio_chunk', { audio: base64Audio });
+                document.getElementById('chunksProcessed').textContent = ++chunkCounter;
+                document.getElementById('currentTime').textContent = formatTime(videoTime);
+            } else {
+                socket.emit('translation_chunk', { audio: base64Audio });
+                document.getElementById('translationChunksProcessed').textContent = ++translationChunkCounter;
+                document.getElementById('translationCurrentTime').textContent = formatTime(videoTime);
+            }
+        }
+        
+        // Helper functions for recording
+        async function startRecording() {
+            try {
+                // Ensure video is playing and not muted
+                video.muted = false;
+                video.volume = 1.0;
+                if (video.paused) {
+                    await video.play();
+                }
+
+                // Create audio context to capture video audio
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Create media stream from video
+                const stream = video.captureStream();
+                if (stream.getAudioTracks().length === 0) {
+                    throw new Error('No audio track found in this video file.');
+                }
+
+                mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+                // Create script processor for audio chunks
+                processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                // Separate buffers per mode so transcription and translation can
+                // run simultaneously without stealing each other's audio.
+                let transcriptionChunks = [];
+                let translationChunks = [];
+                let lastChunkTime = Date.now();
+                let lastTranslationTime = Date.now();
+
+                processor.onaudioprocess = function(event) {
+                    if (!isRecording && !isTranslating) return;
+
+                    const inputBuffer = event.inputBuffer;
+                    const audioData = inputBuffer.getChannelData(0);
+
+                    // Convert to Int16Array
+                    const int16Array = new Int16Array(audioData.length);
+                    for (let i = 0; i < audioData.length; i++) {
+                        int16Array[i] = audioData[i] * 32767;
+                    }
+
+                    // Feed each active mode's own buffer with the same audio frame
+                    if (isRecording) transcriptionChunks.push(int16Array);
+                    if (isTranslating) translationChunks.push(int16Array);
+
+                    const currentTime = Date.now();
+
+                    // Stream a transcription audio frame ~every second (persistent connection)
+                    if (isRecording && currentTime - lastChunkTime >= 1000) {
+                        if (transcriptionChunks.length > 0) {
+                            const chunksToSend = [...transcriptionChunks];
+                            transcriptionChunks = [];
+                            sendAudioChunk('transcribe', chunksToSend, video.currentTime);
+                        }
+                        lastChunkTime = currentTime;
+                    }
+
+                    // Stream a translation audio frame ~every second (persistent connection)
+                    if (isTranslating && currentTime - lastTranslationTime >= 1000) {
+                        if (translationChunks.length > 0) {
+                            const chunksToSend = [...translationChunks];
+                            translationChunks = [];
+                            sendAudioChunk('translate', chunksToSend, video.currentTime);
+                        }
+                        lastTranslationTime = currentTime;
+                    }
+                };
+                
+                // Connect audio nodes
+                mediaStreamSource.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                console.log('✅ Audio recording setup complete!');
+
+            } catch (error) {
+                console.error('❌ Error starting recording:', error);
+                updateStatus(`Could not capture audio: ${error.message}`, 'error');
+                // Undo everything startTranscription/startTranslation already set up,
+                // so the buttons don't keep claiming a stream is running, and so the
+                // next click retries capture from scratch instead of silently
+                // no-op'ing on a half-initialized audioContext.
+                resetStreamingState();
+            }
+        }
+
+        // Cancel any in-progress/active streams and return the UI to idle.
+        // Used when audio capture fails partway through start*().
+        function resetStreamingState() {
+            isRecording = false;
+            isTranslating = false;
+            document.getElementById('startTranscription').disabled = false;
+            document.getElementById('stopTranscription').disabled = true;
+            document.getElementById('startTranslation').disabled = false;
+            document.getElementById('stopTranslation').disabled = true;
+            socket.emit('stop_stream', { mode: 'transcribe' });
+            socket.emit('stop_stream', { mode: 'translate' });
+            stopRecording();
+        }
+
+        function stopRecording() {
+            if (processor) {
+                processor.disconnect();
+                processor = null;
+            }
+            if (mediaStreamSource) {
+                mediaStreamSource.disconnect();
+                mediaStreamSource = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+        }
+        
+        // Append a result line to the given output panel, tagged with time elapsed
+        // since the stream started. (Text is untrusted model output, so it's set via
+        // textContent rather than innerHTML to avoid injecting markup.)
+        function displayResult(outputId, text) {
+            if (!text || !text.trim()) return;
+
+            const output = document.getElementById(outputId);
+            const placeholder = output.querySelector('.placeholder');
+            if (placeholder) placeholder.remove();
+
+            const elapsed = startTime ? (Date.now() - startTime) / 1000 : 0;
+            const item = document.createElement('div');
+            item.className = 'transcription-item';
+
+            const timestampSpan = document.createElement('span');
+            timestampSpan.className = 'timestamp';
+            timestampSpan.textContent = `[${formatTime(elapsed)}]`;
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'text';
+            textSpan.textContent = text;
+
+            item.append(timestampSpan, textSpan);
+            output.appendChild(item);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearTranscriptionDisplay() {
+            const output = document.getElementById('transcriptionOutput');
+            output.innerHTML = '<p class="placeholder">Transcriptions will appear here in real-time...</p>';
+            document.getElementById('chunksProcessed').textContent = '0';
+            document.getElementById('currentTime').textContent = '00:00';
+        }
+
+        function clearTranslationDisplay() {
+            const output = document.getElementById('translationOutput');
+            output.innerHTML = '<p class="placeholder">Translations will appear here in real-time...</p>';
+            document.getElementById('translationChunksProcessed').textContent = '0';
+            document.getElementById('translationCurrentTime').textContent = '00:00';
+        }
+    </script>
+</body>
+</html> 
