@@ -1,14 +1,23 @@
 import os
 import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Security
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any
+from fastapi.security import APIKeyHeader
 from src.db.clickhouse_client import get_client
 from src.model_loader import get_sentence_transformer
 
 admin_router = APIRouter(prefix="/admin")
 html_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
+
+api_key_header = APIKeyHeader(name="X-API-Key")
+
+def get_admin_api_key(api_key: str = Security(api_key_header)):
+    expected_key = os.environ.get("ADMIN_API_KEY", "dev-secret-key")
+    if api_key != expected_key:
+        raise HTTPException(status_code=403, detail="Could not validate credentials")
+    return api_key
 
 class QueryData(BaseModel):
     table: str
@@ -23,7 +32,7 @@ async def get_admin_page():
         return f.read()
 
 @admin_router.post("/api/data")
-async def get_data(data: QueryData):
+async def get_data(data: QueryData, api_key: str = Security(get_admin_api_key)):
     client = get_client()
     if data.table not in ["product_catalog", "company_faqs", "company_tos"]:
         raise HTTPException(status_code=400, detail="Invalid table")
@@ -42,7 +51,7 @@ async def get_data(data: QueryData):
     return {"columns": list(rows[0].keys()) if rows else [], "data": rows}
 
 @admin_router.post("/api/save")
-async def save_data(data: SaveData):
+async def save_data(data: SaveData, api_key: str = Security(get_admin_api_key)):
     client = get_client()
     table = data.table
     rows = data.rows
@@ -98,13 +107,13 @@ async def save_data(data: SaveData):
             r["rating"] = float(r.get("rating") or 0.0)
             r["in_stock"] = int(r.get("in_stock") or 0)
             if "name" in r:
-                r["embedding"] = model.encode(r["name"]).tolist()
+                r["embedding"] = get_sentence_transformer().encode(r["name"]).tolist()
         elif table == "company_faqs":
             tags_val = r.get("tags", "")
             if isinstance(tags_val, str):
                 r["tags"] = [t.strip() for t in tags_val.split(",") if t.strip()]
             if "question" in r:
-                r["question_embedding"] = model.encode(r["question"]).tolist()
+                r["question_embedding"] = get_sentence_transformer().encode(r["question"]).tolist()
         elif table == "company_tos":
             tags_val = r.get("tags", "")
             if isinstance(tags_val, str):
@@ -127,6 +136,12 @@ async def save_data(data: SaveData):
     columns = list(rows[0].keys())
     insert_data = [[r.get(c) for c in columns] for r in rows]
 
-    client.command(f"TRUNCATE TABLE {table}")
-    client.insert(table, insert_data, column_names=columns)
+    # Shadow table swap
+    temp_table = f"{table}_temp"
+    client.command(f"CREATE TABLE {temp_table} AS {table}")
+    client.insert(temp_table, insert_data, column_names=columns)
+    
+    client.command(f"EXCHANGE TABLES {table} AND {temp_table}")
+    client.command(f"DROP TABLE {temp_table}")
+    
     return {"status": "success"}

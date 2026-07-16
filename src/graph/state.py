@@ -5,12 +5,10 @@ from langchain_core.messages import AnyMessage
 
 class AgentState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
+    rag_contexts: Annotated[List[str], operator.add]
     customer_profile: Dict[str, Any]
     active_intents: List[str]
-    detected_language: str
     english_query: str
-    # Annotated with operator.add to safely concatenate parallel state updates
-    retrieved_context: Annotated[List[str], operator.add]
     session_id: str
     ticket_id: str
     handoff_status: str

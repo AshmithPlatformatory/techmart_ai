@@ -17,7 +17,7 @@ The system features dynamic intent routing, retrieval-augmented generation (RAG)
 * **Stateful Multi-Turn Memory**: Worker nodes pass fetched context as explicit `SystemMessage` objects, allowing Pipecat's `LLMContext` to perfectly persist database context across an entire conversational session without context amnesia.
 * **Token Safety Truncation**: Universal text truncation ensures that no database fetch will ever exceed context window limits (400 errors), seamlessly preserving workflow stability.
 * **Robust Telemetry**: Granular request tracing and token usage monitoring via Langfuse integration at the application root.
-* **Dialect & Tone Awareness**: Sarvam STT integration detects caller dialect and manages barge-ins accurately through Server-Side Voice Activity Detection (VAD).
+* **Dialect & Tone Awareness**: Sarvam STT integration detects caller dialect. Barge-ins and turn-taking are natively managed by a local Silero VAD implementation integrated directly with Pipecat for minimal latency.
 
 ## System Architecture
 

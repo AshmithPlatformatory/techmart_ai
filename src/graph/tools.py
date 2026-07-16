@@ -36,9 +36,12 @@ Only output the raw SQL query. Do not add markdown blocks like ```sql. Do not ad
         if sql_query.startswith("```sql"):
             sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
         
-        res = client.query(sql_query)
+        if not sql_query.upper().startswith("SELECT") or ";" in sql_query:
+            raise ValueError("Only a single SELECT query is allowed.")
+        
+        res = client.query(sql_query, settings={"max_execution_time": 2})
         if not res.result_rows:
-            return "No matching products found."
+            raise ValueError("Empty SQL result. Fallback to Vector Search.")
         
         cols = res.column_names
         out = []
@@ -63,7 +66,10 @@ Only output the raw SQL query. Do not add markdown blocks like ```sql. Do not ad
 
 def get_order_context(customer_id: str) -> str:
     client = get_client()
-    res = client.query(f"SELECT order_id, order_date, status, items, final_amount_inr FROM order_history WHERE customer_id = '{customer_id}' ORDER BY order_date DESC")
+    res = client.query(
+        "SELECT order_id, order_date, status, items, final_amount_inr FROM order_history WHERE customer_id = %(cid)s ORDER BY order_date DESC",
+        parameters={"cid": customer_id}
+    )
     out = []
     if res.result_rows:
         for r in res.result_rows:
@@ -75,7 +81,10 @@ def get_order_context(customer_id: str) -> str:
 
 def get_history_context(customer_id: str) -> str:
     client = get_client()
-    res = client.query(f"SELECT ticket_id, call_start_time, summary FROM call_tickets WHERE customer_id = '{customer_id}' ORDER BY call_start_time DESC")
+    res = client.query(
+        "SELECT ticket_id, call_start_time, summary FROM call_tickets WHERE customer_id = %(cid)s ORDER BY call_start_time DESC",
+        parameters={"cid": customer_id}
+    )
     out = []
     if res.result_rows:
         for r in res.result_rows:

@@ -22,12 +22,15 @@ from pipecat.frames.frames import (
     EndFrame,
     TTSUpdateSettingsFrame,
     LLMTextFrame,
+    LLMFullResponseStartFrame,
+    LLMFullResponseEndFrame,
 )
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.utils.tracing.service_decorators import traced_llm
 from pipecat.transcriptions.language import Language
 from pipecat.services.sarvam.tts import SarvamTTSService
+from src.bot.sentiment import VoiceSentimentFrame
 
 from src.graph.workflow import stream_graph_with_tracing
 from src.graph.nodes import write_call_ticket
@@ -45,7 +48,7 @@ def _tool_exchange(input_messages: list, final_messages: list) -> list:
     return [
         m
         for m in new_messages
-        if isinstance(m, ToolMessage) or (isinstance(m, AIMessage) and m.tool_calls) or isinstance(m, SystemMessage)
+        if isinstance(m, ToolMessage) or (isinstance(m, AIMessage) and m.tool_calls)
     ]
 
 
@@ -60,6 +63,11 @@ class LangGraphLLMService(OpenAILLMService):
         self._ticket_id = f"TKT-{uuid.uuid4().hex[:8].upper()}"
         self._handoff_status = "None"
         self._user_emotion = "neutral"
+
+    async def process_frame(self, frame, direction):
+        if isinstance(frame, VoiceSentimentFrame):
+            self._user_emotion = frame.emotion
+        await super().process_frame(frame, direction)
 
     @traced_llm
     async def _process_context(self, context: LLMContext) -> None:
@@ -78,7 +86,6 @@ class LangGraphLLMService(OpenAILLMService):
             "session_id": self._session_id,
             "active_intents": [],
             "detected_language": detected_lang_str,
-            "retrieved_context": [],   # Always reset each turn (state.py has no operator.add)
             "handoff_status": self._handoff_status,
             "user_emotion": self._user_emotion,
             "ticket_id": self._ticket_id,
@@ -87,6 +94,22 @@ class LangGraphLLMService(OpenAILLMService):
         await self.start_ttfb_metrics()
         first_token = True
         final_state = state
+
+        # --- Fix 7: Push TTS language BEFORE the response starts ---
+        # This guarantees the TTS engine is configured with the correct
+        # language model before it starts synthesizing the first chunk.
+        detected_lang_str = self._customer_profile.get("detected_language", "en-IN")
+        final_lang_str = self._customer_profile.get("detected_language", detected_lang_str)
+        try:
+            lang_enum = Language(final_lang_str)
+        except ValueError:
+            lang_enum = Language.EN_IN
+            
+        await self.push_frame(
+            TTSUpdateSettingsFrame(
+                delta=SarvamTTSService.Settings(language=lang_enum)
+            )
+        )
 
         try:
             async for stream_type, data in stream_graph_with_tracing(state):
@@ -97,25 +120,14 @@ class LangGraphLLMService(OpenAILLMService):
                         if content:
                             if first_token:
                                 await self.stop_ttfb_metrics()
+                                await self.push_frame(LLMFullResponseStartFrame())
                                 first_token = False
                             await self.push_frame(LLMTextFrame(content))
                 elif stream_type == "values":
                     final_state = data
-
-            # --- Fix 7: Push TTS language AFTER we have the confirmed final state ---
-            # This avoids the race condition where TTS reconfigures mid-first-token.
-            # final_state["detected_language"] is set by the synthesizer_node from
-            # the language the STT detected, which is the language TTS must speak in.
-            final_lang_str = final_state.get("detected_language", detected_lang_str)
-            try:
-                lang_enum = Language(final_lang_str)
-            except ValueError:
-                lang_enum = Language.EN_IN
-            await self.push_frame(
-                TTSUpdateSettingsFrame(
-                    delta=SarvamTTSService.Settings(language=lang_enum)
-                )
-            )
+            
+            # Finalize the response to release the microphone lock
+            await self.push_frame(LLMFullResponseEndFrame())
 
             # Update our internal state
             self._handoff_status = final_state.get("handoff_status", "None")

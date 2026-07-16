@@ -5,6 +5,8 @@ Identifies the caller via ClickHouse and spawns the Pipecat pipeline.
 """
 import asyncio
 import json
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"  # Prevent 504 errors if HuggingFace is down
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import Response
@@ -12,6 +14,8 @@ from src.model_loader import get_sentence_transformer
 from src.admin.router import admin_router
 from src.db.clickhouse_client import get_client
 from src.bot.pipeline import create_pipecat_pipeline
+from src.bot.sentiment import preload_classifier
+from src.graph.nodes import get_router_llm, get_synth_llm
 from pipecat.workers.runner import WorkerRunner
 import os
 import aiohttp
@@ -25,19 +29,32 @@ async def lifespan(app: FastAPI):
     print("  PRE-WARMING AI MODELS...              ")
     print("="*50)
     
-    print("[1/3] Loading SentenceTransformer (Vector Search)...")
+    print("[1/4] Loading SentenceTransformer (Vector Search)...")
     get_sentence_transformer()
     print("      -> SentenceTransformer loaded successfully!")
     
-    print("[2/3] Loading Silero VAD (Voice Activity Detection)...")
+    print("[2/4] Loading VoiceSentimentProcessor (HuggingFace)...")
+    preload_classifier()
+    print("      -> VoiceSentimentProcessor loaded successfully!")
+    
+    print("[3/4] Warming up ChatGroq LLMs...")
+    get_router_llm()
+    get_synth_llm()
+    print("      -> ChatGroq clients authenticated successfully!")
+
+    print("[4/4] Loading Silero VAD (Voice Activity Detection)...")
     from pipecat.audio.vad.silero import SileroVADAnalyzer
     SileroVADAnalyzer()
     print("      -> Silero VAD loaded successfully!")
-    
-    print("[3/3] Loading Smart Turn (Turn Taking)...")
-    from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
-    LocalSmartTurnAnalyzerV3()
-    print("      -> Smart Turn model loaded successfully!")
+
+    print("[5/5] Waking up ClickHouse Database...")
+    try:
+        def _warm_db():
+            get_client().command("SELECT 1")
+        await asyncio.to_thread(_warm_db)
+        print("      -> ClickHouse connected successfully!")
+    except Exception as e:
+        print(f"      -> Warning: ClickHouse warmup failed: {e}")
 
     print("="*50)
     print("  ALL MODELS READY! Starting server...  ")
@@ -110,7 +127,7 @@ async def get_vobiz_xml(request: Request):
     xml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Record fileFormat="mp3" maxLength="3600" recordSession="true" callbackUrl="https://{host}/recording-ready" callbackMethod="POST" />
-    <Stream bidirectional="true" audioTrack="inbound" contentType="audio/x-mulaw;rate=8000" keepCallAlive="true">{ws_url}</Stream>
+    <Stream bidirectional="true" contentType="audio/x-mulaw;rate=8000" keepCallAlive="true">{ws_url}</Stream>
 </Response>"""
     return Response(content=xml_response, media_type="application/xml")
 
@@ -186,12 +203,15 @@ async def handle_websocket(websocket: WebSocket, client_type: str, phone_number:
         normalized_digits = "".join(filter(str.isdigit, caller_phone))
         core_number = normalized_digits[-10:] if len(normalized_digits) >= 10 else normalized_digits
         
-        client = get_client()
-        # Query using LIKE since DB format is "+91-XXXXXXXXXX"
-        query = f"SELECT * FROM customers WHERE phone LIKE '%{core_number}'"
-        res = client.query(query)
-        if res.result_rows:
-            customer_profile = dict(zip(res.column_names, res.result_rows[0]))
+        def _fetch_profile(num: str):
+            client = get_client()
+            query = "SELECT * FROM customers WHERE phone LIKE %(phone)s"
+            res = client.query(query, parameters={"phone": f"%{num}"})
+            if res.result_rows:
+                return dict(zip(res.column_names, res.result_rows[0]))
+            return {}
+
+        customer_profile = await asyncio.to_thread(_fetch_profile, core_number)
 
     query_call_uuid = websocket.query_params.get("CallUUID", call_id)
     if query_call_uuid and query_call_uuid in active_calls:
@@ -201,13 +221,13 @@ async def handle_websocket(websocket: WebSocket, client_type: str, phone_number:
     worker, transport = create_pipecat_pipeline(
         websocket, stream_id, call_id, customer_profile, client_type, vobiz_encoding, vobiz_sample_rate
     )
-    runner = WorkerRunner()
+    runner = WorkerRunner(handle_sigint=False)
 
     try:
         await runner.add_workers(worker)
         await runner.run()
     except WebSocketDisconnect:
-        pass
+        print("[WS] Call session terminated cleanly (WebSocketDisconnect).")
     except Exception as e:
         print(f"Call session terminated: {e}")
     finally:

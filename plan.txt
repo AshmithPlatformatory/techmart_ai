@@ -90,7 +90,8 @@
 
 
 2. **Sarvam STT & TTS Integration:**
-* Inject `SarvamSTTService` into the pipeline. Configure it to utilize Sarvam's server-side VAD (`vad_signals=True`) to accurately manage caller barge-ins and dialect switching.
+* Inject `SarvamSTTService` into the pipeline.
+* Utilize the local Silero VAD (`vad_analyzer=SileroVADAnalyzer`) to accurately manage caller barge-ins and dialect switching.
 * Inject `SarvamTTSService` to catch outgoing text frames and synthesize them back into the native dialect detected by the STT.
 
 

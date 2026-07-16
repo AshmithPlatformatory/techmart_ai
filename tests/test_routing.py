@@ -31,7 +31,7 @@ class TestLangGraphRouting:
         assert sorted(routes) == sorted(expected_routes)
 
     @patch("src.graph.nodes.router_llm")
-    def test_router_node_parsing(self, mock_router_llm):
+    async def test_router_node_parsing(self, mock_router_llm):
         """Test that the router node correctly invokes LLM and filters valid intents."""
         # Mock structured output
         mock_structured_llm = MagicMock()
@@ -41,19 +41,19 @@ class TestLangGraphRouting:
         mock_structured_llm.invoke.return_value = RouterOutput(intents=["support", "catalog", "invalid"])
         state = {"messages": [HumanMessage(content="I need help with a product")]}
         
-        result = router_node(state)
+        result = await router_node(state)
         # Should filter out "invalid"
         assert sorted(result["active_intents"]) == ["catalog", "support"]
 
         # Scenario 2: Empty intents returned
         mock_structured_llm.invoke.return_value = RouterOutput(intents=["fake"])
-        result = router_node(state)
+        result = await router_node(state)
         assert result["active_intents"] == []
 
     @patch("src.graph.workflow.CallbackHandler")
     @patch("src.graph.nodes.synth_llm")
     @patch("src.graph.nodes.router_llm")
-    @patch("src.graph.nodes.model")
+    @patch("src.graph.nodes.get_sentence_transformer")
     @patch("src.graph.nodes.get_client")
     @patch("src.graph.nodes.get_support_context")
     @patch("src.graph.nodes.get_order_context")
@@ -92,10 +92,10 @@ class TestLangGraphRouting:
         final_state = voice_agent_graph.invoke(initial_state)
 
         # Assertions
-        assert "retrieved_context" in final_state
-        assert len(final_state["retrieved_context"]) == 2
+        assert "messages" in final_state
+        assert len(final_state["messages"]) >= 2
         
-        contexts = "".join(final_state["retrieved_context"])
+        contexts = "".join([m.content for m in final_state["messages"] if isinstance(m, SystemMessage)])
         assert "[SUPPORT]" in contexts
         assert "Support FAQ data" in contexts
         assert "[ORDERS]" in contexts

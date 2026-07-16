@@ -5,6 +5,16 @@ from pipecat.frames.frames import InputAudioRawFrame, Frame
 from pipecat.frames.frames import VADUserStartedSpeakingFrame, VADUserStoppedSpeakingFrame
 from dataclasses import dataclass
 
+_global_classifier = None
+
+def preload_classifier():
+    """Forces the HuggingFace pipeline to download and cache the model globally."""
+    global _global_classifier
+    if _global_classifier is None:
+        from transformers import pipeline
+        _global_classifier = pipeline("audio-classification", model="superb/wav2vec2-base-superb-er")
+    return _global_classifier
+
 
 @dataclass
 class VoiceSentimentFrame(Frame):
@@ -23,10 +33,7 @@ class VoiceSentimentProcessor(FrameProcessor):
         self._current_sample_rate = 16000
 
     def _get_classifier(self):
-        if self._classifier is None:
-            from transformers import pipeline
-            self._classifier = pipeline("audio-classification", model="ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
-        return self._classifier
+        return preload_classifier()
 
     async def process_frame(self, frame: Frame, direction: FrameDirection = FrameDirection.DOWNSTREAM):
         await super().process_frame(frame, direction)
