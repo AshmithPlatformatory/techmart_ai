@@ -15,7 +15,7 @@ from src.admin.router import admin_router
 from src.db.clickhouse_client import get_client
 from src.bot.pipeline import create_pipecat_pipeline
 from src.bot.sentiment import preload_classifier
-from src.graph.nodes import get_router_llm, get_synth_llm
+from src.graph.nodes import get_router_llm, get_synth_llm, write_call_ticket
 from pipecat.workers.runner import WorkerRunner
 import os
 import aiohttp
@@ -218,7 +218,7 @@ async def handle_websocket(websocket: WebSocket, client_type: str, phone_number:
         active_calls[query_call_uuid]["websocket"] = websocket
         active_calls[query_call_uuid]["status"] = "active"
         
-    worker, transport = create_pipecat_pipeline(
+    worker, transport, context, graph_adapter = create_pipecat_pipeline(
         websocket, stream_id, call_id, customer_profile, client_type, vobiz_encoding, vobiz_sample_rate
     )
     runner = WorkerRunner(handle_sigint=False)
@@ -231,6 +231,33 @@ async def handle_websocket(websocket: WebSocket, client_type: str, phone_number:
     except Exception as e:
         print(f"Call session terminated: {e}")
     finally:
+        # Generate the final ticket when the call completely finishes
+        try:
+            from langchain_core.messages import convert_to_messages
+            raw_messages = [m for m in context.get_messages() if m.get("role") != "system"]
+            if len(raw_messages) >= 2:
+                langchain_msgs = convert_to_messages(raw_messages)
+                transcript = "\n".join([f"{'User' if m.type == 'human' else 'Agent'}: {m.content}" for m in langchain_msgs])
+                
+                async def _save_ticket_bg():
+                    try:
+                        print("[CRM] Generating end-of-call ticket summary...")
+                        await write_call_ticket(
+                            ticket_id=graph_adapter._ticket_id,
+                            session_id=graph_adapter._session_id,
+                            customer_profile=customer_profile,
+                            full_transcript=transcript
+                        )
+                        print("[CRM] Call ticket saved successfully.")
+                    except Exception as e:
+                        print(f"[CRM] Failed to write end-of-call ticket: {e}")
+                
+                # We use create_task because if the user hung up, this websocket handler 
+                # is in a Cancelled state. Awaiting here would instantly raise CancelledError!
+                asyncio.create_task(_save_ticket_bg())
+        except Exception as e:
+            print(f"[CRM] Failed to initiate end-of-call ticket: {e}")
+
         if query_call_uuid in active_calls:
             del active_calls[query_call_uuid]
 

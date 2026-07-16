@@ -1,13 +1,15 @@
 import os
 import aiohttp
+import asyncio
 from loguru import logger
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
-from pipecat.frames.frames import Frame, LLMFullResponseEndFrame, LLMTextFrame, TranscriptionFrame
+from pipecat.frames.frames import Frame, LLMFullResponseEndFrame, LLMTextFrame, TranscriptionFrame, CancelFrame, EndFrame
 
 class SarvamTranslationProcessor(FrameProcessor):
     """
     Intercepts English LLM responses and translates them to the user's detected 
     language natively using Sarvam's Translate API before handing off to TTS.
+    Uses a Future-based Ordering Queue to prevent blocking the Pipecat event loop.
     """
     def __init__(self, customer_profile: dict, context):
         super().__init__()
@@ -16,11 +18,53 @@ class SarvamTranslationProcessor(FrameProcessor):
         self.api_key = os.getenv("SARVAM_API_KEY")
         self.buffer = ""
         self.english_buffer = ""
-    
+        
+        # Ordering Queue mechanism
+        self._task_queue = asyncio.Queue()
+        self._worker_task = asyncio.create_task(self._translation_worker())
+        
+    async def cleanup(self):
+        await super().cleanup()
+        if self._worker_task:
+            await self._task_queue.put((None, None)) # Signal shutdown
+            self._worker_task.cancel()
+
+    async def _translation_worker(self):
+        """Background worker that pushes translations in strict chronological order."""
+        try:
+            while True:
+                item = await self._task_queue.get()
+                task, direction = item
+                if task is None:
+                    self._task_queue.task_done()
+                    break
+                
+                try:
+                    translated_frame = await task
+                    if translated_frame:
+                        await self.push_frame(translated_frame, direction)
+                except asyncio.CancelledError:
+                    pass
+                except Exception as e:
+                    logger.error(f"Error in translation worker: {e}")
+                finally:
+                    self._task_queue.task_done()
+        except asyncio.CancelledError:
+            pass
+
     async def process_frame(self, frame: Frame, direction: FrameDirection = FrameDirection.DOWNSTREAM):
         await super().process_frame(frame, direction)
         
-        if isinstance(frame, LLMTextFrame):
+        if isinstance(frame, (CancelFrame, EndFrame)):
+            # Drain queue if pipeline is cancelled/ended
+            if not self._task_queue.empty():
+                try:
+                    await asyncio.wait_for(self._task_queue.join(), timeout=2.0)
+                except asyncio.TimeoutError:
+                    pass
+            await self.push_frame(frame, direction)
+
+        elif isinstance(frame, LLMTextFrame):
             target_lang = self.customer_profile.get("detected_language", "en-IN")
             
             # If English, just pass it through instantly (no translation needed)
@@ -31,9 +75,12 @@ class SarvamTranslationProcessor(FrameProcessor):
             self.buffer += frame.text
             self.english_buffer += frame.text
             
-            # Sentence boundary detection (basic punctuation or newline)
+            # Sentence boundary detection
             if any(punct in frame.text for punct in ['.', '!', '?', '\n']):
-                await self._translate_and_push(self.buffer, target_lang, direction)
+                # Spawn translation request immediately in background
+                translation_task = asyncio.create_task(self._fetch_translation(self.buffer, target_lang))
+                # Enqueue the future to be yielded in chronological order
+                await self._task_queue.put((translation_task, direction))
                 self.buffer = ""
                 
         elif isinstance(frame, LLMFullResponseEndFrame):
@@ -43,19 +90,23 @@ class SarvamTranslationProcessor(FrameProcessor):
                 self.context.add_message({"role": "assistant", "content": self.english_buffer.strip()})
                 self.english_buffer = ""
 
-            # Flush any remaining text in the buffer at the end of the response
+            # Flush any remaining text in the buffer
             if not target_lang.startswith("en") and self.buffer.strip():
-                await self._translate_and_push(self.buffer, target_lang, direction)
+                translation_task = asyncio.create_task(self._fetch_translation(self.buffer, target_lang))
+                await self._task_queue.put((translation_task, direction))
                 self.buffer = ""
                 
+            # Wait for all queued translations to finish BEFORE pushing the EndFrame
+            await self._task_queue.join()
             await self.push_frame(frame, direction)
+            
         else:
             await self.push_frame(frame, direction)
 
-    async def _translate_and_push(self, text: str, target_lang: str, direction: FrameDirection):
+    async def _fetch_translation(self, text: str, target_lang: str) -> LLMTextFrame:
         text = text.strip()
         if not text:
-            return
+            return None
             
         url = "https://api.sarvam.ai/translate"
         headers = {
@@ -76,18 +127,18 @@ class SarvamTranslationProcessor(FrameProcessor):
                     if resp.status == 200:
                         data = await resp.json()
                         translated = data.get("translated_text", text)
-                        translated_frame = LLMTextFrame(translated + " ")
-                        translated_frame.append_to_context = False
-                        await self.push_frame(translated_frame, direction)
+                        frame = LLMTextFrame(translated + " ")
+                        frame.append_to_context = False
+                        return frame
                     else:
                         logger.error(f"Sarvam translation failed: {await resp.text()}")
-                        original_frame = LLMTextFrame(text + " ")
-                        original_frame.append_to_context = False
-                        await self.push_frame(original_frame, direction)
+                        frame = LLMTextFrame(text + " ")
+                        frame.append_to_context = False
+                        return frame
         except Exception as e:
             logger.error(f"Sarvam translation error: {e}")
-            original_frame = LLMTextFrame(text + " ")
-            original_frame.append_to_context = False
-            await self.push_frame(original_frame, direction)
+            frame = LLMTextFrame(text + " ")
+            frame.append_to_context = False
+            return frame
 
 

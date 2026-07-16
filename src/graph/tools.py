@@ -26,10 +26,31 @@ def get_catalog_context(query: str) -> str:
     from langchain_groq import ChatGroq
     client = get_client()
     llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
-    prompt = f"""You are a Text-to-SQL generator for a ClickHouse database.
-Table schema: product_catalog (name String, brand String, category String, price_inr Float32, stock_qty Int32, warranty_months Int32, rating Float32, in_stock UInt8, price_tier String, page_content String)
-Generate a ClickHouse SQL query to answer this user query: "{query}"
-Only output the raw SQL query. Do not add markdown blocks like ```sql. Do not add any explanation."""
+    prompt = f"""You are an expert Text-to-SQL engine for a ClickHouse database.
+Your goal is to generate a highly optimized ClickHouse SQL query to answer the user's request.
+
+### SCHEMA
+Table: `product_catalog`
+Columns: 
+- name (String)
+- brand (String)
+- category (String)
+- price_inr (Float32)
+- stock_qty (Int32)
+- warranty_months (Int32)
+- rating (Float32)
+- in_stock (UInt8) 
+- price_tier (String)
+- page_content (String)
+
+### CRITICAL RULES
+1. **Fuzzy Matching:** Use `ilike` or `lower()` for text searches to handle typos (e.g., `lower(brand) = 'samsung'`).
+2. **Limit:** Always append `LIMIT 5` unless a specific number is requested.
+3. **Format:** Output ONLY the raw SQL query. No markdown formatting, no ` ```sql `, no trailing semicolons, and no explanations.
+
+### USER QUERY
+"{query}"
+"""
     
     try:
         sql_query = llm.invoke(prompt).content.strip()

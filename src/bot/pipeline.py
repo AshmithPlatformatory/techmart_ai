@@ -28,6 +28,7 @@ from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 from src.bot.sentiment import VoiceSentimentProcessor
 from src.bot.translator import SarvamTranslationProcessor
 from src.bot.adapter import LangGraphLLMService
+from src.bot.wav_injector import WavHeaderInjector
 from pipecat.audio.filters.rnnoise_filter import RNNoiseFilter
 
 import re
@@ -137,9 +138,12 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
     sentiment_processor = VoiceSentimentProcessor()
     translator = SarvamTranslationProcessor(customer_profile, context)
     
+    wav_injector = WavHeaderInjector()
+    
     pipeline = Pipeline([
         transport.input(),
         sentiment_processor,
+        wav_injector,
         stt,
         lang_interceptor,
         context_aggregator.user(),
@@ -182,4 +186,4 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
         print("[WS] Vobiz WebSocket disconnected by caller. Cancelling pipeline...")
         await worker.cancel()
 
-    return worker, transport
+    return worker, transport, context, graph_adapter

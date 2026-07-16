@@ -139,9 +139,8 @@ class LangGraphLLMService(OpenAILLMService):
                 if to_persist:
                     context.add_messages(convert_to_openai_messages(to_persist))
 
-            # --- Fix 4: Write ticket as fire-and-forget background task ---
-            # Does NOT block the user from hearing the response.
-            asyncio.create_task(write_call_ticket(final_state))
+            # --- Removed per-turn ticket writing ---
+            # Call tickets are now strictly written at the end of the call in main.py
 
             # Handoff logic
             if self._handoff_status == "Accepted":
