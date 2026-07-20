@@ -17,16 +17,23 @@ def get_support_context(query: str) -> str:
                 tos_res = client.query(f"SELECT title, content FROM company_tos WHERE doc_id = '{r[2]}'")
                 if tos_res.result_rows:
                     out.append(f"TOS ({r[2]}): {tos_res.result_rows[0][0]} - {tos_res.result_rows[0][1]}")
-    out_str = "\n".join(out)
-    if len(out_str) > 15000:
-        return out_str[:15000] + "\n...[TRUNCATED due to context limits. Please be more specific.]"
-    return out_str
+    out_str = ""
+    for r in out:
+        if len(out_str) + len(r) > 2000:
+            out_str += "\n...[TRUNCATED due to context limits. Please be more specific.]"
+            break
+        out_str += r + "\n"
+    return out_str.strip()
 
 def get_catalog_context(query: str) -> str:
     from langchain_groq import ChatGroq
     import logging
     client = get_client()
     llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+    cat_res = client.query("SELECT distinct category FROM product_catalog")
+    valid_categories = [r[0] for r in cat_res.result_rows] if cat_res.result_rows else []
+    cat_str = ", ".join(valid_categories)
+
     base_prompt = f"""You are an expert Text-to-SQL engine for a ClickHouse database.
 Your goal is to generate a highly optimized ClickHouse SQL query to answer the user's request.
 
@@ -35,7 +42,7 @@ Table: `product_catalog`
 Columns: 
 - name (String)
 - brand (String)
-- category (String)
+- category (String) - MUST be one of these exact values: [{cat_str}]
 - price_inr (Float32)
 - stock_qty (Int32)
 - warranty_months (Int32)
@@ -72,10 +79,13 @@ Columns:
             for r in res.result_rows:
                 row_str = ", ".join([f"{c}: {v}" for c, v in zip(cols, r)])
                 out.append(row_str)
-            out_str = "\n".join(out)
-            if len(out_str) > 15000:
-                return out_str[:15000] + "\n...[TRUNCATED due to context limits. Please be more specific.]"
-            return out_str
+            out_str = ""
+            for r in out:
+                if len(out_str) + len(r) > 2000:
+                    out_str += "\n...[TRUNCATED due to context limits. Please be more specific.]"
+                    break
+                out_str += r + "\n"
+            return out_str.strip()
         except Exception as e:
             if attempt == 1:
                 logging.getLogger(__name__).warning(
@@ -97,10 +107,13 @@ Columns:
         if res.result_rows:
             for r in res.result_rows:
                 out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Details: {r[9]}")
-        out_str = "\n".join(out)
-        if len(out_str) > 15000:
-            return out_str[:15000] + "\n...[TRUNCATED due to context limits. Please be more specific.]"
-        return out_str
+        out_str = ""
+        for r in out:
+            if len(out_str) + len(r) > 2000:
+                out_str += "\n...[TRUNCATED due to context limits. Please be more specific.]"
+                break
+            out_str += r + "\n"
+        return out_str.strip()
     except Exception as e:
         logging.getLogger(__name__).error(f"Catalog vector search also failed: {e}")
         return ""
@@ -186,10 +199,13 @@ Columns:
             for r in res.result_rows:
                 row_str = ", ".join([f"{c}: {v}" for c, v in zip(cols, r)])
                 out.append(row_str)
-            out_str = "\n".join(out)
-            if len(out_str) > 15000:
-                return out_str[:15000] + "\n...[TRUNCATED due to context limits. Please be more specific.]"
-            return out_str
+            out_str = ""
+            for r in out:
+                if len(out_str) + len(r) > 2000:
+                    out_str += "\n...[TRUNCATED due to context limits. Please be more specific.]"
+                    break
+                out_str += r + "\n"
+            return out_str.strip()
         except Exception as e:
             if attempt == 1:
                 logging.getLogger(__name__).warning(
@@ -211,7 +227,10 @@ def get_history_context(customer_id: str) -> str:
     if res.result_rows:
         for r in res.result_rows:
             out.append(f"Ticket: {r[0]}, Date: {r[1]}, Summary: {r[2]}")
-    out_str = "\n".join(out)
-    if len(out_str) > 15000:
-        return out_str[:15000] + "\n...[TRUNCATED due to context limits. Please be more specific.]"
-    return out_str
+    out_str = ""
+    for r in out:
+        if len(out_str) + len(r) > 2000:
+            out_str += "\n...[TRUNCATED due to context limits. Please be more specific.]"
+            break
+        out_str += r + "\n"
+    return out_str.strip()
