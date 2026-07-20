@@ -26,16 +26,23 @@ def get_synth_llm():
     return _synth_llm
 
 class RouterOutput(BaseModel):
+    standalone_query: str = Field(description="A rewritten, standalone search query that intelligently merges the latest user request with conversation history if it is a continuation, or just the new topic if it is a context switch.")
     intents: list[str] = Field(description="List of intents: support, orders, catalog, history")
     handoff_action: str = Field(description="One of: 'none', 'offer_handoff', 'accept_handoff', 'reject_handoff'", default="none")
 
 async def router_node(state: AgentState) -> dict:
-    recent_msgs = state["messages"][-4:]
+    recent_msgs = state["messages"][-10:]
     conversation_history = "\n".join([f"{'User' if m.type == 'human' else 'Agent'}: {m.content}" for m in recent_msgs])
     english_query = state["messages"][-1].content
     handoff_status = state.get("handoff_status", "None")
 
     prompt = f"""You are the routing intelligence for a voice assistant. Analyze the user's latest query and the conversation history to determine the necessary data sources and actions.
+
+### STANDALONE QUERY GENERATION
+Generate a `standalone_query` based on the user's latest message.
+- If the latest message is a continuation of the previous thought (e.g., adding constraints like 'under 50k' or using pronouns like 'what about that one'), merge the conversation history into a single, comprehensive search query.
+- If the latest message is a completely new, unrelated topic, generate a query based ONLY on the new topic and ignore the history.
+- Ensure the query contains all necessary nouns (e.g., brand names, product types) from previous messages if it's a continuation.
 
 ### INTENT CLASSIFICATION (Select all that apply)
 You may select MULTIPLE intents if the user asks a multi-part question:
@@ -44,6 +51,7 @@ You may select MULTIPLE intents if the user asks a multi-part question:
 - `catalog`: Product availability, pricing, or tech recommendations.
 - `history`: Previous support tickets or past interactions.
 If the user is making casual conversation (e.g., "hello", "can you hear me") OR asking out-of-domain questions (e.g., "what is 2+2"), return an EMPTY list.
+IMPORTANT: If the user is asking a META question about your capabilities or the system (e.g., "Do you have a product catalog?", "Can you check my orders?", "What can you help me with?"), do NOT select any intent. These are conversational questions — return an EMPTY list so the agent can answer them naturally.
 If no intent matches, return an empty list.
 
 ### HANDOFF PROTOCOL (Determine `handoff_action`)
@@ -63,8 +71,8 @@ NOTE: Checking, fetching, viewing, or asking for order history, catalog, or acco
     except Exception as e:
         import logging
         logging.getLogger(__name__).error(f"Router LLM Error: {e}")
-        # Graceful fallback: return empty active intents and maintain handoff status
-        result = RouterOutput(intents=[], handoff_action="none")
+        # Graceful fallback: return empty active intents and maintain handoff status, default to raw query
+        result = RouterOutput(standalone_query=english_query, intents=[], handoff_action="none")
 
     valid = [i for i in result.intents if i in ["support", "orders", "catalog", "history"]]
 
@@ -76,30 +84,31 @@ NOTE: Checking, fetching, viewing, or asking for order history, catalog, or acco
     elif result.handoff_action == "reject_handoff":
         new_handoff_status = "None"
 
-    return {"active_intents": valid, "handoff_status": new_handoff_status, "english_query": english_query}
+    return {"active_intents": valid, "handoff_status": new_handoff_status, "english_query": result.standalone_query}
 
-def support_worker(state: AgentState) -> dict:
+async def support_worker(state: AgentState) -> dict:
     q = state.get("english_query", state["messages"][-1].content)
-    data = get_support_context(q)
+    data = await asyncio.to_thread(get_support_context, q)
     return {"rag_contexts": [f"[SUPPORT]\n{data}"]}
 
-def order_worker(state: AgentState) -> dict:
+async def order_worker(state: AgentState) -> dict:
     cid = state.get("customer_profile", {}).get("customer_id", "")
     if not cid:
         return {"rag_contexts": ["[ORDERS]\nNo customer ID."]}
-    data = get_order_context(cid)
+    q = state.get("english_query", state["messages"][-1].content)
+    data = await asyncio.to_thread(get_order_context, cid, q)
     return {"rag_contexts": [f"[ORDERS]\n{data}"]}
 
-def catalog_worker(state: AgentState) -> dict:
+async def catalog_worker(state: AgentState) -> dict:
     q = state.get("english_query", state["messages"][-1].content)
-    data = get_catalog_context(q)
+    data = await asyncio.to_thread(get_catalog_context, q)
     return {"rag_contexts": [f"[CATALOG]\n{data}"]}
 
-def history_worker(state: AgentState) -> dict:
+async def history_worker(state: AgentState) -> dict:
     cid = state.get("customer_profile", {}).get("customer_id", "")
     if not cid:
         return {"rag_contexts": ["[HISTORY]\nNo customer ID."]}
-    data = get_history_context(cid)
+    data = await asyncio.to_thread(get_history_context, cid)
     return {"rag_contexts": [f"[HISTORY]\n{data}"]}
 
 async def synthesizer_node(state: AgentState) -> dict:

@@ -115,7 +115,7 @@ To allow Vobiz.ai to route calls to your local WebSocket endpoint, you need to e
 
 ```bash
 # In a separate terminal
-ngrok http 8000
+.\ngrok http 8000
 ```
 Note the `wss://` URL provided by Ngrok (e.g., `wss://<ngrok-id>.ngrok-free.app/ws/vobiz`) and configure it within your Vobiz.ai console or webhook flow.
 

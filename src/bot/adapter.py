@@ -32,6 +32,8 @@ from pipecat.transcriptions.language import Language
 from pipecat.services.sarvam.tts import SarvamTTSService
 from src.bot.sentiment import VoiceSentimentFrame
 
+TTS_SUPPORTED_LANGUAGES = ["bn-IN", "en-IN", "gu-IN", "hi-IN", "kn-IN", "ml-IN", "mr-IN", "od-IN", "pa-IN", "ta-IN", "te-IN"]
+
 from src.graph.workflow import stream_graph_with_tracing
 from src.graph.nodes import write_call_ticket
 
@@ -100,6 +102,8 @@ class LangGraphLLMService(OpenAILLMService):
         # language model before it starts synthesizing the first chunk.
         detected_lang_str = self._customer_profile.get("detected_language", "en-IN")
         final_lang_str = self._customer_profile.get("detected_language", detected_lang_str)
+        if final_lang_str not in TTS_SUPPORTED_LANGUAGES:
+            final_lang_str = "en-IN"
         try:
             lang_enum = Language(final_lang_str)
         except ValueError:

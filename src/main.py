@@ -126,7 +126,6 @@ async def get_vobiz_xml(request: Request):
 
     xml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Record fileFormat="mp3" maxLength="3600" recordSession="true" callbackUrl="https://{host}/recording-ready" callbackMethod="POST" />
     <Stream bidirectional="true" contentType="audio/x-mulaw;rate=8000" keepCallAlive="true">{ws_url}</Stream>
 </Response>"""
     return Response(content=xml_response, media_type="application/xml")

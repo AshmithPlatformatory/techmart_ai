@@ -4,6 +4,8 @@ Integrates Langfuse observability using the updated v3.x Langchain CallbackHandl
 Maps the execution nodes and conditional routing logic.
 """
 from langgraph.graph import StateGraph, END, START
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import RetryPolicy
 from langfuse.langchain import CallbackHandler
 from src.graph.state import AgentState
 from src.graph.nodes import (
@@ -31,7 +33,7 @@ builder.add_node("support_worker", support_worker)
 builder.add_node("order_worker", order_worker)
 builder.add_node("catalog_worker", catalog_worker)
 builder.add_node("history_worker", history_worker)
-builder.add_node("synthesizer", synthesizer_node)
+builder.add_node("synthesizer", synthesizer_node, retry_policy=RetryPolicy(max_attempts=2, initial_interval=0.3, backoff_factor=1.0))
 # sink_node is removed from the graph — it runs as asyncio.create_task()
 # in adapter.py after streaming completes, so it never blocks the response.
 
@@ -52,15 +54,17 @@ builder.add_edge("history_worker", "synthesizer")
 # Graph ends at synthesizer — no blocking sink step.
 builder.add_edge("synthesizer", END)
 
-voice_agent_graph = builder.compile()
+voice_agent_graph = builder.compile(checkpointer=MemorySaver())
+
+import uuid
 
 def invoke_graph_with_tracing(initial_state: dict):
     langfuse_handler = CallbackHandler()
-    config = {"callbacks": [langfuse_handler]}
+    config = {"callbacks": [langfuse_handler], "configurable": {"thread_id": uuid.uuid4().hex}}
     return voice_agent_graph.invoke(initial_state, config=config)
 
 async def stream_graph_with_tracing(initial_state: dict):
     langfuse_handler = CallbackHandler()
-    config = {"callbacks": [langfuse_handler]}
+    config = {"callbacks": [langfuse_handler], "configurable": {"thread_id": uuid.uuid4().hex}}
     async for chunk in voice_agent_graph.astream(initial_state, config=config, stream_mode=["messages", "values"]):
         yield chunk

@@ -27,27 +27,12 @@ from pipecat.turns.user_turn_strategies import TurnAnalyzerUserTurnStopStrategy,
 from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 from src.bot.sentiment import VoiceSentimentProcessor
 from src.bot.translator import SarvamTranslationProcessor
+from src.bot.input_translator import InputTranslationProcessor
 from src.bot.adapter import LangGraphLLMService
-from src.bot.wav_injector import WavHeaderInjector
 from pipecat.audio.filters.rnnoise_filter import RNNoiseFilter
-
 import re
 
-def contains_indic_script(text: str) -> bool:
-    return bool(re.search(r'[\u0900-\u0D7F]', text))
 
-class LanguageInterceptor(FrameProcessor):
-    def __init__(self, state_dict: dict):
-        super().__init__()
-        self.state_dict = state_dict
-
-    async def process_frame(self, frame, direction=FrameDirection.DOWNSTREAM):
-        await super().process_frame(frame, direction)
-        if isinstance(frame, TranscriptionFrame) and frame.language:
-            text = getattr(frame, "text", "").strip()
-            if len(text) > 0:
-                self.state_dict["detected_language"] = frame.language.value
-        await self.push_frame(frame, direction)
 
 
 
@@ -102,7 +87,7 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
 
     stt = SarvamSTTService(
         api_key=sarvam_api_key,
-        mode="translate",
+        mode="transcribe",
         settings=SarvamSTTService.Settings(
             model="saaras:v3",
             vad_signals=False
@@ -133,19 +118,16 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
         ),
     )
 
-    lang_interceptor = LanguageInterceptor(customer_profile)
+    input_translator = InputTranslationProcessor(customer_profile)
     graph_adapter = LangGraphLLMService(customer_profile=customer_profile, call_id=call_id, api_key="not-used")
     sentiment_processor = VoiceSentimentProcessor()
     translator = SarvamTranslationProcessor(customer_profile, context)
     
-    wav_injector = WavHeaderInjector()
-    
     pipeline = Pipeline([
         transport.input(),
         sentiment_processor,
-        wav_injector,
         stt,
-        lang_interceptor,
+        input_translator,
         context_aggregator.user(),
         graph_adapter,
         translator,

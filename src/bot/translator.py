@@ -5,6 +5,8 @@ from loguru import logger
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.frames.frames import Frame, LLMFullResponseEndFrame, LLMTextFrame, TranscriptionFrame, CancelFrame, EndFrame
 
+TTS_SUPPORTED_LANGUAGES = ["bn-IN", "en-IN", "gu-IN", "hi-IN", "kn-IN", "ml-IN", "mr-IN", "od-IN", "pa-IN", "ta-IN", "te-IN"]
+
 class SarvamTranslationProcessor(FrameProcessor):
     """
     Intercepts English LLM responses and translates them to the user's detected 
@@ -66,6 +68,8 @@ class SarvamTranslationProcessor(FrameProcessor):
 
         elif isinstance(frame, LLMTextFrame):
             target_lang = self.customer_profile.get("detected_language", "en-IN")
+            if target_lang not in TTS_SUPPORTED_LANGUAGES:
+                target_lang = "en-IN"
             
             # If English, just pass it through instantly (no translation needed)
             if target_lang.startswith("en"):
@@ -85,6 +89,8 @@ class SarvamTranslationProcessor(FrameProcessor):
                 
         elif isinstance(frame, LLMFullResponseEndFrame):
             target_lang = self.customer_profile.get("detected_language", "en-IN")
+            if target_lang not in TTS_SUPPORTED_LANGUAGES:
+                target_lang = "en-IN"
             
             if self.english_buffer.strip():
                 self.context.add_message({"role": "assistant", "content": self.english_buffer.strip()})

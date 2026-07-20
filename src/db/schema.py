@@ -118,8 +118,60 @@ def create_tables(reset=False):
         
     logger.info("ClickHouse schema deployment complete.")
 
+def create_indexes():
+    client = get_client()
+    logger.info("Creating HNSW vector indexes...")
+    
+    try:
+        client.command("SET allow_experimental_vector_similarity_index = 1")
+    except Exception as e:
+        logger.info(f"SET allow_experimental_vector_similarity_index failed (may not be needed): {e}")
+
+    indexes = [
+        """
+        ALTER TABLE company_faqs 
+        ADD INDEX IF NOT EXISTS hnsw_faq_idx question_embedding 
+        TYPE vector_similarity('hnsw', 'cosineDistance', 384, 'f32', 100, 500)
+        """,
+        """
+        ALTER TABLE product_catalog 
+        ADD INDEX IF NOT EXISTS hnsw_catalog_idx embedding 
+        TYPE vector_similarity('hnsw', 'cosineDistance', 384, 'f32', 100, 500)
+        """,
+        """
+        ALTER TABLE call_tickets 
+        ADD INDEX IF NOT EXISTS hnsw_tickets_idx summary_embedding 
+        TYPE vector_similarity('hnsw', 'cosineDistance', 384, 'f32', 100, 500)
+        """
+    ]
+    
+    for stmt in indexes:
+        try:
+            client.command(stmt)
+        except Exception as e:
+            logger.info(f"Index creation skipped/failed: {e}")
+            
+    logger.info("Materializing indexes...")
+    materialize_stmts = [
+        "ALTER TABLE company_faqs MATERIALIZE INDEX IF EXISTS hnsw_faq_idx",
+        "ALTER TABLE product_catalog MATERIALIZE INDEX IF EXISTS hnsw_catalog_idx",
+        "ALTER TABLE call_tickets MATERIALIZE INDEX IF EXISTS hnsw_tickets_idx"
+    ]
+    
+    for stmt in materialize_stmts:
+        try:
+            client.command(stmt)
+        except Exception as e:
+            logger.info(f"Index materialization skipped/failed: {e}")
+
+    logger.info("HNSW index setup complete.")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--reset", action="store_true", help="Drop and recreate all tables")
+    parser.add_argument("--add-indexes", action="store_true", help="Create HNSW indexes on existing tables")
     args = parser.parse_args()
-    create_tables(reset=args.reset)
+    if args.add_indexes:
+        create_indexes()
+    else:
+        create_tables(reset=args.reset)

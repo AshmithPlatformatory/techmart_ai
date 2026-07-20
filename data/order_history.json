@@ -26933,5 +26933,212 @@
     "delivery_charges_inr": 0,
     "final_amount_inr": 311074,
     "item_count": 3
+  },
+  {
+    "order_id": "ORD-900001",
+    "customer_id": "CUST-9001",
+    "order_date": "2025-06-15",
+    "status": "Delivered",
+    "payment_method": "UPI",
+    "delivery_address": "123 Indiranagar, Bengaluru - 560038, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-LAP-001",
+        "product_name": "Apple MacBook Air M3 13\"",
+        "category": "Laptop",
+        "quantity": 1,
+        "unit_price_inr": 114900,
+        "total_price_inr": 114900
+      }
+    ],
+    "subtotal_inr": 114900,
+    "discount_inr": 0,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 114900,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900002",
+    "customer_id": "CUST-9001",
+    "order_date": "2025-11-22",
+    "status": "Delivered",
+    "payment_method": "UPI",
+    "delivery_address": "123 Indiranagar, Bengaluru - 560038, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-PHN-001",
+        "product_name": "Apple iPhone 16 Pro Max",
+        "category": "Phone",
+        "quantity": 1,
+        "unit_price_inr": 159900,
+        "total_price_inr": 159900
+      }
+    ],
+    "subtotal_inr": 159900,
+    "discount_inr": 2000,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 157900,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900003",
+    "customer_id": "CUST-9001",
+    "order_date": "2026-03-10",
+    "status": "Shipped",
+    "payment_method": "UPI",
+    "delivery_address": "123 Indiranagar, Bengaluru - 560038, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-CON-001",
+        "product_name": "Sony PlayStation 5 Slim",
+        "category": "Gaming Console",
+        "quantity": 1,
+        "unit_price_inr": 54990,
+        "total_price_inr": 54990
+      }
+    ],
+    "subtotal_inr": 54990,
+    "discount_inr": 0,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 54990,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900004",
+    "customer_id": "CUST-9002",
+    "order_date": "2025-08-01",
+    "status": "Delivered",
+    "payment_method": "Credit Card",
+    "delivery_address": "456 Koramangala, Bengaluru - 560034, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-LAP-002",
+        "product_name": "Dell XPS 15 9530",
+        "category": "Laptop",
+        "quantity": 1,
+        "unit_price_inr": 189990,
+        "total_price_inr": 189990
+      }
+    ],
+    "subtotal_inr": 189990,
+    "discount_inr": 5000,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 184990,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900005",
+    "customer_id": "CUST-9002",
+    "order_date": "2026-05-18",
+    "status": "Delivered",
+    "payment_method": "Credit Card",
+    "delivery_address": "456 Koramangala, Bengaluru - 560034, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-PHN-002",
+        "product_name": "Samsung Galaxy S25 Ultra",
+        "category": "Phone",
+        "quantity": 1,
+        "unit_price_inr": 129999,
+        "total_price_inr": 129999
+      }
+    ],
+    "subtotal_inr": 129999,
+    "discount_inr": 0,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 129999,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900006",
+    "customer_id": "CUST-9003",
+    "order_date": "2025-10-20",
+    "status": "Delivered",
+    "payment_method": "UPI",
+    "delivery_address": "789 Whitefield, Bengaluru - 560066, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-LAP-005",
+        "product_name": "Asus ROG Zephyrus G14 (2024)",
+        "category": "Laptop",
+        "quantity": 1,
+        "unit_price_inr": 139990,
+        "total_price_inr": 139990
+      }
+    ],
+    "subtotal_inr": 139990,
+    "discount_inr": 2000,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 137990,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900007",
+    "customer_id": "CUST-9003",
+    "order_date": "2026-07-02",
+    "status": "Processing",
+    "payment_method": "UPI",
+    "delivery_address": "789 Whitefield, Bengaluru - 560066, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-PHN-006",
+        "product_name": "Motorola Edge 50 Pro",
+        "category": "Phone",
+        "quantity": 1,
+        "unit_price_inr": 31999,
+        "total_price_inr": 31999
+      }
+    ],
+    "subtotal_inr": 31999,
+    "discount_inr": 0,
+    "delivery_charges_inr": 200,
+    "final_amount_inr": 32199,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900008",
+    "customer_id": "CUST-9004",
+    "order_date": "2026-07-10",
+    "status": "Processing",
+    "payment_method": "Credit Card",
+    "delivery_address": "321 Jayanagar, Bengaluru - 560011, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-CAM-008",
+        "product_name": "Leica Q3",
+        "category": "Camera",
+        "quantity": 1,
+        "unit_price_inr": 599990,
+        "total_price_inr": 599990
+      }
+    ],
+    "subtotal_inr": 599990,
+    "discount_inr": 0,
+    "delivery_charges_inr": 500,
+    "final_amount_inr": 600490,
+    "item_count": 1
+  },
+  {
+    "order_id": "ORD-900009",
+    "customer_id": "CUST-9005",
+    "order_date": "2026-06-25",
+    "status": "Delivered",
+    "payment_method": "UPI",
+    "delivery_address": "654 Malleshwaram, Bengaluru - 560003, Karnataka",
+    "items": [
+      {
+        "product_id": "TK-CON-001",
+        "product_name": "Sony PlayStation 5 Slim",
+        "category": "Gaming Console",
+        "quantity": 1,
+        "unit_price_inr": 54990,
+        "total_price_inr": 54990
+      }
+    ],
+    "subtotal_inr": 54990,
+    "discount_inr": 0,
+    "delivery_charges_inr": 0,
+    "final_amount_inr": 54990,
+    "item_count": 1
   }
 ]
