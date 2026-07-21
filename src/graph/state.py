@@ -12,4 +12,5 @@ class AgentState(TypedDict):
     session_id: str
     ticket_id: str
     handoff_status: str
-    user_emotion: str
+    user_emotion: str
+    structured_memory: Dict[str, Any]

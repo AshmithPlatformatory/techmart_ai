@@ -26,7 +26,6 @@ from pipecat.utils.text.markdown_text_filter import MarkdownTextFilter
 from pipecat.turns.user_turn_strategies import TurnAnalyzerUserTurnStopStrategy, UserTurnStrategies
 from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 from src.bot.sentiment import VoiceSentimentProcessor
-from src.bot.translator import SarvamTranslationProcessor
 from src.bot.input_translator import InputTranslationProcessor
 from src.bot.adapter import LangGraphLLMService
 from pipecat.audio.filters.rnnoise_filter import RNNoiseFilter
@@ -87,7 +86,7 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
 
     stt = SarvamSTTService(
         api_key=sarvam_api_key,
-        mode="transcribe",
+        mode="codemix",
         settings=SarvamSTTService.Settings(
             model="saaras:v3",
             vad_signals=False
@@ -111,7 +110,7 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
     context_aggregator = LLMContextAggregatorPair(
         context,
         user_params=LLMUserAggregatorParams(
-            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.8)),
+            vad_analyzer=SileroVADAnalyzer(params=VADParams(start_secs=0.4, stop_secs=0.8)),
             user_turn_strategies=UserTurnStrategies(
                 start=[MinWordsUserTurnStartStrategy(min_words=2)]
             )
@@ -121,7 +120,6 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
     input_translator = InputTranslationProcessor(customer_profile)
     graph_adapter = LangGraphLLMService(customer_profile=customer_profile, call_id=call_id, api_key="not-used")
     sentiment_processor = VoiceSentimentProcessor()
-    translator = SarvamTranslationProcessor(customer_profile, context)
     
     pipeline = Pipeline([
         transport.input(),
@@ -130,7 +128,6 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
         input_translator,
         context_aggregator.user(),
         graph_adapter,
-        translator,
         tts,
         transport.output(),
         context_aggregator.assistant()

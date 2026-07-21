@@ -34,24 +34,27 @@ from src.bot.sentiment import VoiceSentimentFrame
 
 TTS_SUPPORTED_LANGUAGES = ["bn-IN", "en-IN", "gu-IN", "hi-IN", "kn-IN", "ml-IN", "mr-IN", "od-IN", "pa-IN", "ta-IN", "te-IN"]
 
+import struct
+import math
+
+def _generate_ringback_tone(duration_seconds=5, sample_rate=8000):
+    audio_data = bytearray()
+    for i in range(duration_seconds * sample_rate):
+        t = i / sample_rate
+        cycle = t % 3.0
+        if cycle < 1.0:
+            sample = int(32767 * 0.5 * (math.sin(2 * math.pi * 440 * t) + math.sin(2 * math.pi * 480 * t)))
+        else:
+            sample = 0
+        audio_data.extend(struct.pack('<h', sample))
+    return bytes(audio_data)
+
+# Globally cached ringback tone so it is only computed once on startup
+CACHED_RINGBACK_TONE = _generate_ringback_tone()
+
 from src.graph.workflow import stream_graph_with_tracing
 from src.graph.nodes import write_call_ticket
 
-
-def _tool_exchange(input_messages: list, final_messages: list) -> list:
-    """This turn's tool-call exchange, to persist back into Pipecat's context.
-
-    Only the tool-deciding AIMessages and the ToolMessages they produced —
-    NOT the final spoken answer: the assistant aggregator records that from
-    the pushed LLMTextFrames. Persisting these first keeps the context order
-    correct: [..., user, AI(tool_calls), ToolMessage, AI(final answer)].
-    """
-    new_messages = final_messages[len(input_messages):]
-    return [
-        m
-        for m in new_messages
-        if isinstance(m, ToolMessage) or (isinstance(m, AIMessage) and m.tool_calls)
-    ]
 
 
 class LangGraphLLMService(OpenAILLMService):
@@ -121,7 +124,8 @@ class LangGraphLLMService(OpenAILLMService):
                     chunk, metadata = data
                     if metadata.get("langgraph_node") == "synthesizer":
                         content = chunk.content
-                        if content:
+                        if content and isinstance(content, str):
+                            content = content.replace("*", "").replace("#", "").replace("-", " ")
                             if first_token:
                                 await self.stop_ttfb_metrics()
                                 await self.push_frame(LLMFullResponseStartFrame())
@@ -135,13 +139,6 @@ class LangGraphLLMService(OpenAILLMService):
 
             # Update our internal state
             self._handoff_status = final_state.get("handoff_status", "None")
-
-            # Persist tool calls back to LLMContext
-            final_messages = final_state.get("messages", [])
-            if final_messages:
-                to_persist = _tool_exchange(messages, final_messages)
-                if to_persist:
-                    context.add_messages(convert_to_openai_messages(to_persist))
 
             # --- Removed per-turn ticket writing ---
             # Call tickets are now strictly written at the end of the call in main.py
@@ -170,6 +167,9 @@ class LangGraphLLMService(OpenAILLMService):
                         print("[TRANSFER] Initiated transfer via Vobiz API")
                     except Exception as e:
                         print(f"[TRANSFER] Failed to initiate transfer: {e}")
+                
+                # Push the 5-second Ringback Tone audio before hanging up
+                await self.push_frame(OutputAudioRawFrame(audio=CACHED_RINGBACK_TONE, sample_rate=8000, num_channels=1))
                 
                 # Push EndFrame just in case the transfer fails or is delayed. Vobiz will hang up anyway on transfer.
                 await self.push_frame(EndFrame())

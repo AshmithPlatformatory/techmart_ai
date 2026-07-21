@@ -124,8 +124,8 @@ class SarvamTranslationProcessor(FrameProcessor):
             "source_language_code": "en-IN",
             "target_language_code": target_lang,
             "speaker_gender": "Female",
-            "mode": "formal",
-            "model": "sarvam-translate:v1"
+            "mode": "code-mixed",
+            "model": "mayura:v1"
         }
         try:
             async with aiohttp.ClientSession() as session:
@@ -133,6 +133,7 @@ class SarvamTranslationProcessor(FrameProcessor):
                     if resp.status == 200:
                         data = await resp.json()
                         translated = data.get("translated_text", text)
+                        logger.info(f"Translated: '{text}' ({target_lang}) -> '{translated}'")
                         frame = LLMTextFrame(translated + " ")
                         frame.append_to_context = False
                         return frame

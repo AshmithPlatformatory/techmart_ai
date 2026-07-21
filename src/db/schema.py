@@ -92,6 +92,7 @@ def create_tables(reset=False):
             rating Float32,
             in_stock UInt8,
             price_tier String,
+            specs Map(String, String),
             embedding Array(Float32)
         ) ENGINE = MergeTree()
         ORDER BY product_id

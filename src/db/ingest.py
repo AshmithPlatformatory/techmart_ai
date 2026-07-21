@@ -67,6 +67,7 @@ def ingest_data():
             "rating": float(meta.get("rating", 0)),
             "in_stock": 1 if meta.get("in_stock") else 0,
             "price_tier": meta.get("price_tier"),
+            "specs": meta.get("specs", {}),
             "embedding": get_sentence_transformer().encode(meta.get("name", p.get("page_content"))).tolist()
         }
         catalog_data.append(row)
