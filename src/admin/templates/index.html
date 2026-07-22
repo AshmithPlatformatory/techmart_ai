@@ -2,20 +2,60 @@
 <html>
 <head>
     <title>TechMart Admin CMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow-x: auto; }
-        h2 { margin-top: 0; }
-        select, button { padding: 8px 12px; margin-right: 10px; font-size: 14px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f8f9fa; }
-        input[type="text"], input[type="date"], input[type="number"], select { width: 95%; padding: 4px; box-sizing: border-box; }
-        .btn-danger { background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-primary { background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-success { background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .actions { margin-bottom: 20px; }
-        .readonly-input { background-color: #e9ecef; color: #495057; cursor: not-allowed; border: 1px solid #ced4da; }
+        :root {
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        body { font-family: 'Inter', sans-serif; padding: 40px 20px; background: var(--bg-color); color: var(--text-main); margin: 0; }
+        .container { max-width: 1400px; margin: auto; background: var(--surface-color); padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+        h2 { margin-top: 0; font-weight: 600; color: var(--text-main); letter-spacing: -0.5px; font-size: 24px; margin-bottom: 24px; }
+        .actions { display: flex; gap: 12px; margin-bottom: 24px; align-items: center; }
+        
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 12px top 50%; background-size: 10px auto; padding-right: 32px; }
+        select, button, input[type="text"], input[type="date"], input[type="number"] {
+            padding: 10px 14px; font-size: 14px; font-family: 'Inter', sans-serif;
+            border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--surface-color);
+            transition: all 0.2s ease; outline: none; box-sizing: border-box; width: 100%;
+        }
+        select:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .actions select { width: auto; min-width: 200px; margin-right: 0; }
+        
+        button { width: auto; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border: none; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { background-color: var(--success-hover); transform: translateY(-1px); }
+        .btn-danger { background-color: var(--danger); color: white; padding: 8px 12px; font-size: 13px; }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        table { border-collapse: separate; border-spacing: 0; width: 100%; margin-top: 10px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; white-space: nowrap; }
+        th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 10; border-top: 1px solid var(--border-color); border-bottom: 2px solid var(--border-color); }
+        th:first-child { border-top-left-radius: 6px; border-left: 1px solid var(--border-color); }
+        th:last-child { border-top-right-radius: 6px; border-right: 1px solid var(--border-color); }
+        tbody tr:hover td { background-color: #f8fafc; }
+        
+        .readonly-input { background-color: #f1f5f9; color: var(--text-muted); cursor: not-allowed; border-color: transparent; }
+        td input, td select { min-width: 140px; }
+        
+        /* Custom scrollbar */
+        .container::-webkit-scrollbar { height: 8px; width: 8px; }
+        .container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
@@ -41,12 +81,13 @@
         let currentColumns = [];
         let availableTosDocs = [];
         let dynamicCategories = new Set(['Laptop', 'Monitor', 'Phone', 'CPU', 'GPU', 'Television', 'Audio', 'Accessories', 'Tablet', 'Console', 'Camera', 'Smartwatch', 'Printer', 'Router']);
+        let apiKey = "";
 
         async function fetchTosDocs() {
             try {
                 const res = await fetch("/admin/api/data", {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
+                    headers: {"Content-Type": "application/json", "X-API-Key": apiKey},
                     body: JSON.stringify({table: "company_tos"})
                 });
                 const result = await res.json();
@@ -74,6 +115,8 @@
                 val = "";
             } else if (Array.isArray(val)) {
                 val = val.join(", ");
+            } else if (typeof val === 'object') {
+                val = JSON.stringify(val).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
             } else {
                 val = String(val).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
             }
@@ -117,7 +160,7 @@
             const table = document.getElementById("tableSelect").value;
             const res = await fetch("/admin/api/data", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: {"Content-Type": "application/json", "X-API-Key": apiKey},
                 body: JSON.stringify({table: table})
             });
             const result = await res.json();
@@ -215,7 +258,7 @@
 
             const res = await fetch("/admin/api/save", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: {"Content-Type": "application/json", "X-API-Key": apiKey},
                 body: JSON.stringify({table: table, rows: rows})
             });
             
@@ -228,6 +271,7 @@
         }
 
         window.onload = function() {
+            apiKey = prompt("Enter Admin API Key:", "dev-secret-key");
             fetchTosDocs();
         };
     </script>

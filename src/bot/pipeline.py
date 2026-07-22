@@ -26,7 +26,7 @@ from pipecat.utils.text.markdown_text_filter import MarkdownTextFilter
 from pipecat.turns.user_turn_strategies import TurnAnalyzerUserTurnStopStrategy, UserTurnStrategies
 from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 from src.bot.sentiment import VoiceSentimentProcessor
-from src.bot.input_translator import InputTranslationProcessor
+from src.bot.input_language_detector import InputLanguageDetectorProcessor
 from src.bot.adapter import LangGraphLLMService
 from pipecat.audio.filters.rnnoise_filter import RNNoiseFilter
 import re
@@ -117,7 +117,7 @@ def create_pipecat_pipeline(websocket: WebSocket, stream_id: str, call_id: str, 
         ),
     )
 
-    input_translator = InputTranslationProcessor(customer_profile)
+    input_translator = InputLanguageDetectorProcessor(customer_profile)
     graph_adapter = LangGraphLLMService(customer_profile=customer_profile, call_id=call_id, api_key="not-used")
     sentiment_processor = VoiceSentimentProcessor()
     

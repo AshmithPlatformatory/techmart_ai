@@ -54,6 +54,10 @@ async def get_data(data: QueryData, api_key: str = Security(get_admin_api_key)):
 async def save_data(data: SaveData, api_key: str = Security(get_admin_api_key)):
     client = get_client()
     table = data.table
+
+    if table not in ["product_catalog", "company_faqs", "company_tos"]:
+        raise HTTPException(status_code=400, detail="Invalid table")
+
     rows = data.rows
 
     id_col = "product_id" if table == "product_catalog" else ("faq_id" if table == "company_faqs" else "doc_id")
@@ -106,6 +110,12 @@ async def save_data(data: SaveData, api_key: str = Security(get_admin_api_key)):
             r["warranty_months"] = int(r.get("warranty_months") or 0)
             r["rating"] = float(r.get("rating") or 0.0)
             r["in_stock"] = int(r.get("in_stock") or 0)
+            if "specs" in r and isinstance(r["specs"], str):
+                import json
+                try:
+                    r["specs"] = json.loads(r["specs"])
+                except Exception:
+                    r["specs"] = {}
             if "name" in r:
                 r["embedding"] = get_sentence_transformer().encode(r["name"]).tolist()
         elif table == "company_faqs":

@@ -6,7 +6,7 @@ from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.frames.frames import Frame, TranscriptionFrame, TTSUpdateSettingsFrame
 from pipecat.services.sarvam.tts import SarvamTTSService
 
-class InputTranslationProcessor(FrameProcessor):
+class InputLanguageDetectorProcessor(FrameProcessor):
     """
     Intercepts native-script TranscriptionFrames from the STT and identifies the spoken language 
     for the TTS output. It intentionally DOES NOT translate the text, passing native text 
@@ -55,7 +55,7 @@ class InputTranslationProcessor(FrameProcessor):
                 await self.push_frame(frame, direction)
                 
             except Exception as e:
-                logger.error(f"Error in InputTranslationProcessor: {e}")
+                logger.error(f"Error in InputLanguageDetectorProcessor: {e}")
                 await self.push_frame(frame, direction)
         else:
             await self.push_frame(frame, direction)

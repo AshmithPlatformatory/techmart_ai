@@ -15,7 +15,7 @@ The system features dynamic intent routing, retrieval-augmented generation (RAG)
 * **Low-Latency Architecture**: Employs an event-driven Pipecat WebSocket transport to handle 8kHz linear PCM audio streams natively.
 * **Dual-LLM Routing Engine**: Utilizes a heavy reasoning LLM (`Llama-3.3-70b-versatile` via Groq) as an Intent Router to dispatch specific cognitive tasks (e.g., fetching product specs, order history, or FAQs) to parallel LangGraph worker nodes, while utilizing smaller, ultra-fast models (`gpt-oss-20b` class) for voice synthesis.
 * **Real-time Voice Sentiment Analysis**: Features a localized HuggingFace `VoiceSentimentProcessor` that analyzes raw audio frames to detect caller emotion (e.g., angry, happy) and automatically adjusts the Synthesizer LLM's empathetic tone dynamically.
-* **Seamless Multi-Lingual Translation**: Employs an `InputTranslationProcessor` to instantly translate Hindi, Marathi, or Kannada STT output into English for vector search queries, while replying natively in the caller's language.
+* **Seamless Multi-Lingual Translation**: The `InputLanguageDetectorProcessor` detects the caller's language dynamically. To save ~800ms of API latency, it intentionally skips explicit translation APIs (like Sarvam Translate) and passes native text directly to the LangGraph core, relying on the 70B Router LLM's implicit multilingualism to query the English database and reply natively.
 * **Stateful Multi-Turn Memory**: Worker nodes pass fetched context as explicit `SystemMessage` objects, allowing Pipecat's `LLMContext` to perfectly persist database context across an entire conversational session without context amnesia.
 * **Token Safety Truncation**: Universal text truncation ensures that no database fetch will ever exceed context window limits (400 errors), seamlessly preserving workflow stability.
 * **Dialect & Tone Awareness**: Sarvam STT integration detects caller dialect using `saaras:v3` in codemix mode. Barge-ins and turn-taking are natively managed by a local Silero VAD implementation integrated directly with Pipecat for minimal latency.
@@ -134,7 +134,7 @@ Open `http://localhost:8080` in your browser to interact with the voice agent vi
 
 * `src/main.py`: Main application entry point orchestrating the FastAPI routes and WebSocket endpoint.
 * `src/admin/`: Admin CMS for updating database vectors (Product Catalog, FAQs, TOS).
-* `src/bot/`: Real-time audio pipeline definitions using Pipecat, Sentiment Processor, and Input Translator.
+* `src/bot/`: Real-time audio pipeline definitions using Pipecat, Sentiment Processor, and Input Language Detector.
 * `src/core/`: Application core utilities, configuration, and Langfuse telemetry setup.
 * `src/db/`: ClickHouse schemas, client configuration, and embedding management.
 * `src/graph/`: Multi-agent LangGraph workflow definitions, Intent Router, and synthesizers.
