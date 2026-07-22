@@ -1,6 +1,6 @@
 """
 Main application entry point orchestrating the TechMart Voice Agent.
-Mounts the Admin CMS routes and defines the FastAPI WebSocket endpoint for Exotel.
+Mounts the Admin CMS routes and defines the FastAPI WebSocket endpoint for Vobiz and Web clients.
 Identifies the caller via ClickHouse and spawns the Pipecat pipeline.
 """
 import asyncio
