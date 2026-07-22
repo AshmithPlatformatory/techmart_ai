@@ -167,6 +167,13 @@ class LangGraphLLMService(OpenAILLMService):
                         print("[TRANSFER] Initiated transfer via Vobiz API")
                     except Exception as e:
                         print(f"[TRANSFER] Failed to initiate transfer: {e}")
+                else:
+                    missing = []
+                    if not auth_id: missing.append("VOBIZ_AUTH_ID")
+                    if not auth_token: missing.append("VOBIZ_AUTH_TOKEN")
+                    if not public_url: missing.append("PUBLIC_URL")
+                    if not self._call_id: missing.append("Call UUID")
+                    print(f"[TRANSFER] ERROR: Handoff failed silently because these variables are missing: {', '.join(missing)}")
                 
                 # Push the 5-second Ringback Tone audio before hanging up
                 await self.push_frame(OutputAudioRawFrame(audio=CACHED_RINGBACK_TONE, sample_rate=8000, num_channels=1))

@@ -65,12 +65,28 @@ Columns:
 4. **Vibes vs Rules:** Do NOT try to filter on subjective concepts like "good for gaming" or "best camera". Leave that to the vector search engine. Only filter on hard, objective rules (e.g., `price_inr < 50000`, `specs['ram_gb'] ILIKE '%16%'`).
 
 ### USER QUERY
+### USER QUERY
 "{query}"
-"""
 
-    structured_llm = llm.with_structured_output(FilterOutput)
+### OUTPUT INSTRUCTIONS
+You MUST output a valid JSON object matching this exact schema. Do not include markdown formatting:
+{{
+  "where_clause": "string"
+}}
+"""
+    import json
+    llm_json = llm.bind(response_format={"type": "json_object"})
     try:
-        result = structured_llm.invoke(base_prompt)
+        raw_result = llm_json.invoke(base_prompt)
+        clean_json_str = raw_result.content.strip()
+        if clean_json_str.startswith("```json"):
+            clean_json_str = clean_json_str[7:]
+        if clean_json_str.startswith("```"):
+            clean_json_str = clean_json_str[3:]
+        if clean_json_str.endswith("```"):
+            clean_json_str = clean_json_str[:-3]
+        parsed_json = json.loads(clean_json_str.strip())
+        result = FilterOutput(**parsed_json)
         where_clause = result.where_clause.strip()
         if not where_clause or where_clause.upper().startswith("SELECT"):
             where_clause = "1=1"
@@ -82,7 +98,7 @@ Columns:
     try:
         vector = get_sentence_transformer().encode(query).tolist()
         hybrid_query = f"""
-            SELECT name, brand, category, price_inr, stock_qty, warranty_months, rating, in_stock, price_tier, page_content, 
+            SELECT name, brand, category, price_inr, stock_qty, warranty_months, rating, in_stock, price_tier, specs, 
                    cosineDistance(embedding, {vector}) as dist 
             FROM product_catalog 
             WHERE {where_clause} 
@@ -93,13 +109,13 @@ Columns:
         out = []
         if res.result_rows:
             for r in res.result_rows:
-                out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Details: {r[9]}")
+                out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Specs: {str(r[9])}")
         
         if not out and where_clause != "1=1":
             # If strict filter returned 0 results, gracefully fallback to pure semantic search
             logging.getLogger(__name__).warning(f"Strict filter '{where_clause}' returned 0 rows. Falling back to semantic search.")
             fallback_query = f"""
-                SELECT name, brand, category, price_inr, stock_qty, warranty_months, rating, in_stock, price_tier, page_content, 
+                SELECT name, brand, category, price_inr, stock_qty, warranty_months, rating, in_stock, price_tier, specs, 
                        cosineDistance(embedding, {vector}) as dist 
                 FROM product_catalog 
                 WHERE 1=1 
@@ -109,7 +125,7 @@ Columns:
             res = client.query(fallback_query)
             if res.result_rows:
                 for r in res.result_rows:
-                    out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Details: {r[9]}")
+                    out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Specs: {str(r[9])}")
 
         out_str = ""
         for r in out:
@@ -124,7 +140,7 @@ Columns:
         logging.getLogger(__name__).warning(f"ClickHouse Hybrid Query Failed ({e}). Falling back to pure vector search.")
         try:
             fallback_query = f"""
-                SELECT name, brand, category, price_inr, stock_qty, warranty_months, rating, in_stock, price_tier, page_content, 
+                SELECT name, brand, category, price_inr, stock_qty, warranty_months, rating, in_stock, price_tier, specs, 
                        cosineDistance(embedding, {vector}) as dist 
                 FROM product_catalog 
                 WHERE 1=1 
@@ -135,7 +151,7 @@ Columns:
             out = []
             if res.result_rows:
                 for r in res.result_rows:
-                    out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Details: {r[9]}")
+                    out.append(f"Product: {r[0]} ({r[1]} {r[2]}), Price: {r[3]}, Stock: {r[4]}, Warranty: {r[5]}mo, Rating: {r[6]}, Tier: {r[8]}, Specs: {str(r[9])}")
             out_str = ""
             for r in out:
                 out_str += r + "\n"
@@ -200,13 +216,28 @@ Columns:
 
 ### USER QUERY
 "{query}"
-"""
 
-    structured_llm = llm.with_structured_output(SQLOutput)
+### OUTPUT INSTRUCTIONS
+You MUST output a valid JSON object matching this exact schema. Do not include markdown formatting:
+{{
+  "query": "string"
+}}
+"""
+    import json
+    llm_json = llm.bind(response_format={"type": "json_object"})
     current_prompt = base_prompt
     for attempt in range(2):
         try:
-            result = structured_llm.invoke(current_prompt)
+            raw_result = llm_json.invoke(current_prompt)
+            clean_json_str = raw_result.content.strip()
+            if clean_json_str.startswith("```json"):
+                clean_json_str = clean_json_str[7:]
+            if clean_json_str.startswith("```"):
+                clean_json_str = clean_json_str[3:]
+            if clean_json_str.endswith("```"):
+                clean_json_str = clean_json_str[:-3]
+            parsed_json = json.loads(clean_json_str.strip())
+            result = SQLOutput(**parsed_json)
             sql_query = result.query.strip()
 
             if not sql_query.upper().startswith("SELECT") or ";" in sql_query:
