@@ -1,70 +1,63 @@
-"""
-Compiles the LangGraph workflow and configures the execution graph.
-Integrates Langfuse observability using the updated v3.x Langchain CallbackHandler.
-Maps the execution nodes and conditional routing logic.
-"""
+# Minimal professional comment: LangGraph configuration for the Single Tool-Calling Agent.
 from langgraph.graph import StateGraph, END, START
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import RetryPolicy
+from langgraph.prebuilt import ToolNode
 from langfuse.langchain import CallbackHandler
 from src.graph.state import AgentState
-from src.graph.nodes import (
-    router_node, support_worker, order_worker, catalog_worker,
-    history_worker, synthesizer_node
-)
+from src.graph.nodes import agent_node, summarize_conversation_node
+from src.graph.tools import get_support_faq, search_catalog, get_order_status, get_customer_history, escalate_to_human, search_legal_tos, check_complaint_eligibility, raise_complaint_ticket
+from langchain_core.messages import AIMessage
 
-def route_workers(state: AgentState):
-    intents = state.get("active_intents", [])
-    if not intents:
-        return ["synthesizer"]
-    routes = []
-    if "support" in intents: routes.append("support_worker")
-    if "orders" in intents: routes.append("order_worker")
-    if "catalog" in intents: routes.append("catalog_worker")
-    if "history" in intents: routes.append("history_worker")
-    if not routes:
-        return ["synthesizer"]
-    return routes
+def should_continue(state: AgentState):
+    """Determine whether to invoke tools, summarize, or end."""
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    # If the LLM made a tool call, route to tools
+    if isinstance(last_message, AIMessage) and last_message.tool_calls:
+        return "tools"
+        
+    # Otherwise, check if we need to summarize
+    if len(messages) > 6:
+        return "summarize"
+        
+    return END
+
+# Bind tools to ToolNode
+tools = [get_support_faq, search_legal_tos, search_catalog, get_order_status, get_customer_history, escalate_to_human, check_complaint_eligibility, raise_complaint_ticket]
+tool_node = ToolNode(tools)
 
 builder = StateGraph(AgentState)
 
-builder.add_node("router", router_node)
-builder.add_node("support_worker", support_worker)
-builder.add_node("order_worker", order_worker)
-builder.add_node("catalog_worker", catalog_worker)
-builder.add_node("history_worker", history_worker)
-builder.add_node("synthesizer", synthesizer_node, retry_policy=RetryPolicy(max_attempts=2, initial_interval=0.3, backoff_factor=1.0))
-# sink_node is removed from the graph — it runs as asyncio.create_task()
-# in adapter.py after streaming completes, so it never blocks the response.
+builder.add_node("agent", agent_node)
+builder.add_node("tools", tool_node)
+builder.add_node("summarize", summarize_conversation_node)
 
-builder.add_edge(START, "router")
-builder.add_conditional_edges("router", route_workers, {
-    "support_worker": "support_worker",
-    "order_worker": "order_worker",
-    "catalog_worker": "catalog_worker",
-    "history_worker": "history_worker",
-    "synthesizer": "synthesizer"
-})
+builder.add_edge(START, "agent")
 
-builder.add_edge("support_worker", "synthesizer")
-builder.add_edge("order_worker", "synthesizer")
-builder.add_edge("catalog_worker", "synthesizer")
-builder.add_edge("history_worker", "synthesizer")
+builder.add_conditional_edges(
+    "agent",
+    should_continue,
+    {
+        "tools": "tools",
+        "summarize": "summarize",
+        END: END
+    }
+)
 
-# Graph ends at synthesizer — no blocking sink step.
-builder.add_edge("synthesizer", END)
+builder.add_edge("tools", "agent")
+builder.add_edge("summarize", END)
 
 voice_agent_graph = builder.compile(checkpointer=MemorySaver())
 
-import uuid
-
-def invoke_graph_with_tracing(initial_state: dict):
+def invoke_graph_with_tracing(initial_state: dict, thread_id: str):
     langfuse_handler = CallbackHandler()
-    config = {"callbacks": [langfuse_handler], "configurable": {"thread_id": uuid.uuid4().hex}}
+    config = {"callbacks": [langfuse_handler], "configurable": {"thread_id": thread_id}}
     return voice_agent_graph.invoke(initial_state, config=config)
 
-async def stream_graph_with_tracing(initial_state: dict):
+async def stream_graph_with_tracing(initial_state: dict, thread_id: str):
     langfuse_handler = CallbackHandler()
-    config = {"callbacks": [langfuse_handler], "configurable": {"thread_id": uuid.uuid4().hex}}
-    async for chunk in voice_agent_graph.astream(initial_state, config=config, stream_mode=["messages", "values"]):
-        yield chunk
+    config = {"callbacks": [langfuse_handler], "configurable": {"thread_id": thread_id}}
+    # Using astream_events(version="v2") for better tool vs text separation
+    async for event in voice_agent_graph.astream_events(initial_state, config=config, version="v2"):
+        yield event

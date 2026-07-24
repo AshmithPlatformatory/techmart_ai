@@ -97,7 +97,7 @@ class LangGraphLLMService(OpenAILLMService):
         }
 
         await self.start_ttfb_metrics()
-        first_token = True
+        first_token = [True]
         final_state = state
 
         # --- Fix 7: Push TTS language BEFORE the response starts ---
@@ -118,30 +118,58 @@ class LangGraphLLMService(OpenAILLMService):
             )
         )
 
+        filler_words = {
+            "en-IN": "Just a moment...",
+            "hi-IN": "एक सेकंड...",
+            "kn-IN": "ಒಂದು ನಿಮಿಷ...",
+            "ml-IN": "ഒരു നിമിഷം...",
+            "ta-IN": "ஒரு நிமிடம்...",
+            "te-IN": "ఒక నిమిషం...",
+            "bn-IN": "এক মুহূর্ত...",
+            "gu-IN": "એક મિનિટ...",
+            "mr-IN": "एक मिनिट...",
+            "pa-IN": "ਇੱਕ ਮਿੰਟ...",
+            "od-IN": "ଗୋଟେ ମିନିଟ୍..."
+        }
+        filler = filler_words.get(final_lang_str, "Just a moment...")
+
+        async def filler_task():
+            await asyncio.sleep(0.6)
+            if first_token[0]:
+                first_token[0] = False
+                await self.stop_ttfb_metrics()
+                await self.push_frame(LLMFullResponseStartFrame())
+                await self.push_frame(LLMTextFrame(filler))
+
+        filler_task_handle = asyncio.create_task(filler_task())
+
+        # Minimal professional comment: Parses astream_events and handles tool call isolation.
         try:
-            async for stream_type, data in stream_graph_with_tracing(state):
-                if stream_type == "messages":
-                    chunk, metadata = data
-                    if metadata.get("langgraph_node") == "synthesizer":
-                        content = chunk.content
-                        if content and isinstance(content, str):
-                            content = content.replace("*", "").replace("#", "").replace("-", " ")
-                            if first_token:
+            async for event in stream_graph_with_tracing(state, self._session_id):
+                if event["event"] == "on_chat_model_stream":
+                    if event.get("metadata", {}).get("langgraph_node") == "agent":
+                        chunk = event["data"]["chunk"]
+                        # Skip tool call chunks, only push text
+                        if chunk.content and isinstance(chunk.content, str):
+                            if not first_token_yielded:
+                                first_token_yielded = True
+                                first_token[0] = False
+                                filler_task_handle.cancel()
                                 await self.stop_ttfb_metrics()
                                 await self.push_frame(LLMFullResponseStartFrame())
-                                first_token = False
-                            await self.push_frame(LLMTextFrame(content))
-                elif stream_type == "values":
-                    final_state = data
+                            
+                            cleaned_content = chunk.content.replace("*", "").replace("#", "")
+                            if cleaned_content:
+                                await self.push_frame(LLMTextFrame(cleaned_content))
+                elif event["event"] == "on_chain_end":
+                    if event.get("metadata", {}).get("langgraph_node") == "agent":
+                        final_state = event["data"]["output"]
             
             # Finalize the response to release the microphone lock
             await self.push_frame(LLMFullResponseEndFrame())
 
             # Update our internal state
             self._handoff_status = final_state.get("handoff_status", "None")
-
-            # --- Removed per-turn ticket writing ---
-            # Call tickets are now strictly written at the end of the call in main.py
 
             # Handoff logic
             if self._handoff_status == "Accepted":
@@ -186,3 +214,6 @@ class LangGraphLLMService(OpenAILLMService):
             # Note: The finally block in the handoff logic ensures
             # the call still hangs up if interrupted there.
             pass
+        finally:
+            if not filler_task_handle.done():
+                filler_task_handle.cancel()

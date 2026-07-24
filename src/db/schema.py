@@ -12,7 +12,8 @@ def create_tables(reset=False):
     if reset:
         tables_to_drop = [
             "customers", "order_history", "company_faqs", 
-            "company_tos", "product_catalog", "call_tickets"
+            "company_tos", "product_catalog", "call_tickets",
+            "complaint_tickets"
         ]
         for table in tables_to_drop:
             client.command(f"DROP TABLE IF EXISTS {table}")
@@ -75,9 +76,25 @@ def create_tables(reset=False):
             tags Array(String),
             effective_date Date,
             last_updated Date,
-            content String
+            content String,
+            content_embedding Array(Float32)
         ) ENGINE = MergeTree()
         ORDER BY doc_id
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS complaint_tickets (
+            ticket_id UUID DEFAULT generateUUIDv4(),
+            session_id String,
+            customer_id String,
+            customer_name String,
+            customer_phone String,
+            created_at DateTime DEFAULT now(),
+            title String,
+            issue String,
+            call_logs String,
+            status String DEFAULT 'raised'
+        ) ENGINE = MergeTree()
+        ORDER BY (customer_id, created_at)
         """,
         """
         CREATE TABLE IF NOT EXISTS product_catalog (
@@ -135,6 +152,11 @@ def create_indexes():
         TYPE vector_similarity('hnsw', 'cosineDistance', 384, 'f32', 100, 500)
         """,
         """
+        ALTER TABLE company_tos 
+        ADD INDEX IF NOT EXISTS hnsw_tos_idx content_embedding 
+        TYPE vector_similarity('hnsw', 'cosineDistance', 384, 'f32', 100, 500)
+        """,
+        """
         ALTER TABLE product_catalog 
         ADD INDEX IF NOT EXISTS hnsw_catalog_idx embedding 
         TYPE vector_similarity('hnsw', 'cosineDistance', 384, 'f32', 100, 500)
@@ -155,6 +177,7 @@ def create_indexes():
     logger.info("Materializing indexes...")
     materialize_stmts = [
         "ALTER TABLE company_faqs MATERIALIZE INDEX IF EXISTS hnsw_faq_idx",
+        "ALTER TABLE company_tos MATERIALIZE INDEX IF EXISTS hnsw_tos_idx",
         "ALTER TABLE product_catalog MATERIALIZE INDEX IF EXISTS hnsw_catalog_idx",
         "ALTER TABLE call_tickets MATERIALIZE INDEX IF EXISTS hnsw_tickets_idx"
     ]

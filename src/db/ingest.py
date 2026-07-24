@@ -46,6 +46,7 @@ def ingest_data():
     for t in tos:
         t["effective_date"] = datetime.datetime.strptime(t["effective_date"], "%Y-%m-%d").date()
         t["last_updated"] = datetime.datetime.strptime(t["last_updated"], "%Y-%m-%d").date()
+        t["content_embedding"] = get_sentence_transformer().encode(t["content"]).tolist()
     tos_cols = list(tos[0].keys())
     tos_data = [[t.get(col) for col in tos_cols] for t in tos]
     client.insert("company_tos", tos_data, column_names=tos_cols)
